@@ -5,13 +5,13 @@ import time
 from datetime import datetime
 import queue
 import concurrent.futures
-from .collector import BinanceKlineCollector
-from .detect import detect_signal
-from .config import Config, display_status
-from .alert_manager import AlertManager
-from .keyboard_handler import KeyboardHandler
-from .signal_manager import SignalManager
-from .mouse_operator import MouseOperator
+from collector import BinanceKlineCollector
+from detect import detect_signal
+from config import Config, display_status
+from alert_manager import AlertManager
+from keyboard_handler import KeyboardHandler
+from signal_manager import SignalManager
+from mouse_operator import MouseOperator
 
 
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[Dict[str, Any]]:

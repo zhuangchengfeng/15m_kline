@@ -53,7 +53,7 @@ def detect_signal(kline_data: pd.DataFrame, symbol: str = None,
     signal_type = None
     has_signal = False
 
-    # 检测a形态
+    # 检测a形态 三阴接一阳 且阳线大于2倍阴线
     a = (extra_prev_2['close'] < extra_prev_2['open']) \
         and (extra_prev['close'] < extra_prev['open']) \
         and (prev['close'] < prev['open']) \
@@ -61,10 +61,10 @@ def detect_signal(kline_data: pd.DataFrame, symbol: str = None,
         and price_power(2)
 
     if a:
-        signal_type = 'RRRG|2*P'
+        signal_type = '超跌反弹'
         has_signal = True
 
-    # 检测b形态
+    # 检测b形态  阴阳阴阳
     b = (extra_prev_2['close'] < extra_prev_2['open']) \
         and (extra_prev['close'] > extra_prev['open']) \
         and (prev['close'] < prev['open']) \
@@ -73,14 +73,14 @@ def detect_signal(kline_data: pd.DataFrame, symbol: str = None,
         and volume_power(1.5)
 
     if b:
-        signal_type = 'RGRG|1.5*P|1.5*V'
+        signal_type = '2B'
         has_signal = True
 
-    # 检测c形态
+    # 检测c形态  追涨形态
     c = price_power(2) and volume_power(2.5) and (latest['close'] > latest['open']) and (prev['close'] > prev['open'])
 
     if c:
-        signal_type = 'GG|2*P|2.5*V'
+        signal_type = '追涨'
         has_signal = True
 
     # 如果有信号且需要记录
