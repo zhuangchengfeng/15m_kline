@@ -165,7 +165,7 @@ class TradingSignalBot:
             manager = SymbolManager(self.config.MIN_VOLUME)
             symbols = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
         except ImportError:
-            logger.warning("使用示例币种")
+            logger.warning("import出错，使用示例币种")
             symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT']
 
         # 并发获取数据
