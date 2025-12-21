@@ -161,7 +161,7 @@ class TradingSignalBot:
         """扫描信号"""
         # 获取币种列表
         try:
-            from V1_0.symbol_manager import SymbolManager
+            from symbol_manager import SymbolManager
             manager = SymbolManager(self.config.MIN_VOLUME)
             symbols = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
         except ImportError:
