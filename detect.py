@@ -11,7 +11,7 @@ UTC_TZ = timezone.utc
 
 # 导入信号记录器
 try:
-    from V1_0.signal_recorder import SignalRecorder
+    from signal_recorder import SignalRecorder
 
     signal_recorder = SignalRecorder()
     RECORDER_AVAILABLE = True

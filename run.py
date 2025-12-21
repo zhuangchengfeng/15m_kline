@@ -13,7 +13,6 @@ from keyboard_handler import KeyboardHandler
 from signal_manager import SignalManager
 from mouse_operator import MouseOperator
 
-
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[Dict[str, Any]]:
     """并发获取所有币种K线数据"""
     collector = BinanceKlineCollector(proxy)

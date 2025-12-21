@@ -30,7 +30,7 @@ class Config:
     }
     SCAN_INTERVALS = [0, 15, 30, 45]  # 扫描时间点（分钟）
     SCAN_SECOND_DELAY = [2, 3]  # 扫描时间点（秒） list or int type
-    SCAN_INTERVALS_DEBUG = False  # 扫描时间调试（每分钟）
+    SCAN_INTERVALS_DEBUG = True  # 扫描时间调试（每分钟）
     MAX_RETRIES = 5
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
