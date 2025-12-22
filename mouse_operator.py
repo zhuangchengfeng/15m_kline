@@ -2,7 +2,7 @@
 import pyautogui
 import time
 import logging
-
+import pyperclip
 logger = logging.getLogger(__name__)
 
 
@@ -20,37 +20,37 @@ class MouseOperator:
         logger.info("🖱️ 鼠标操作器已初始化")
 
     def perform_operations(self, symbol: str) -> bool:
-        """
-        执行鼠标操作序列
-
-        Args:
-            symbol: 要操作的交易对符号
-
-        Returns:
-            bool: 操作是否成功
-        """
         try:
             coords = self.click_coordinates
 
-            # 双击位置（复制）
+            # 1. 双击位置
             pyautogui.moveTo(coords['first_double_click'], duration=0.05)
             pyautogui.doubleClick()
             time.sleep(0.1)
 
-            # 输入币种
-            pyautogui.write(symbol, interval=0.03)
+            # 2. 使用剪贴板复制粘贴
+            pyperclip.copy(symbol)  # 复制到剪贴板
+
+            # 3. 粘贴操作
+            # 方法A：使用快捷键 Ctrl+V
+            pyautogui.hotkey('ctrl', 'v')
             time.sleep(0.1)
 
-            # 单击位置
+            # 方法B：使用 pyautogui 的右键菜单（备用）
+            # pyautogui.rightClick()
+            # time.sleep(0.1)
+            # pyautogui.press('p')  # 按P选择"粘贴"
+
+            # 4. 单击位置
             pyautogui.moveTo(coords['second_click'], duration=0.05)
             pyautogui.click()
             time.sleep(0.1)
 
-            logger.debug(f"✅ 鼠标操作完成: {symbol}")
+            logger.debug(f"✅ 剪贴板方式完成: {symbol}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ 鼠标操作失败: {e}")
+            logger.error(f"❌ 操作失败: {e}")
             return False
 
     def update_coordinates(self, new_coordinates: dict):

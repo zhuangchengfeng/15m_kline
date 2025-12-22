@@ -3,7 +3,7 @@ from binance.um_futures import UMFutures
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, List, Tuple, Dict
-
+import os,json
 # 导入信号记录器
 try:
     from signal_recorder import SignalRecorder
@@ -269,6 +269,7 @@ class Report:
         self.logger.info(f"📋 找到 {len(recent_dates)} 个需要更新的历史日期")
 
         # 批量更新
+        print(recent_dates)
         results = self.batch_update_history_dates(recent_dates, days_limit=days)
 
         # 汇总统计
@@ -337,6 +338,112 @@ class Report:
         self.logger.info(f"  已更新价格的symbol: {symbols_with_update}/{len(data)}")
 
 
+def analyze_gap_sorted_signals(json_file_path=None, json_data=None, top_n=None,default_file_path='signal_data/history/'):
+    """
+    根据 gap 大小排序并生成信号分析信息
+
+    参数:
+    json_file_path: JSON 文件路径
+    json_data: 直接传入的 JSON 数据（字典格式）
+    top_n: 只显示前 N 个结果（可选）
+
+    返回:
+    格式化的分析结果字符串
+    """
+    # 加载数据
+    file = default_file_path+json_file_path
+    if file:
+        if not os.path.exists(file):
+            return f"错误: 文件 '{json_file_path}' 不存在"
+
+        with open(file=file, mode='r', encoding='utf-8') as f:
+            data = json.load(f)
+    elif json_data:
+        data = json_data
+    else:
+        return "错误: 必须提供 json_file_path 或 json_data 参数"
+
+    # 收集所有信号
+    all_signals = []
+
+    for symbol, info in data.items():
+        mark_price = info.get('mark_price', 0)
+        update_time = info.get('update_time', 'N/A')
+
+        for signal in info.get('signals', []):
+            signal_info = {
+                'symbol': symbol,
+                'mark_price': mark_price,
+                'update_time': update_time,
+                'time': signal.get('time', 'N/A'),
+                'open_price': signal.get('open_price', 0),
+                'gap': signal.get('gap', 0),
+                'type': signal.get('type', '未知'),
+                'gap_percent': signal.get('gap', 0) * 100  # 计算百分比绝对值用于排序
+            }
+            all_signals.append(signal_info)
+
+    if not all_signals:
+        return "未找到任何信号数据"
+
+    # 按 gap 绝对值排序（从大到小）
+    all_signals.sort(key=lambda x: x['gap_percent'], reverse=False)
+    # 如果指定了 top_n，只取前 N 个
+    if top_n and top_n > 0:
+        all_signals = all_signals[:top_n]
+
+    # 生成格式化输出
+    output_lines = []
+    output_lines.append("=" * 80)
+    output_lines.append("信号分析报告 - 按 Gap 大小排序")
+    output_lines.append("=" * 80)
+    output_lines.append(f"总信号数量: {len(all_signals)}")
+    output_lines.append("")
+
+    # 表头
+    output_lines.append(f"{'排名':<5} {'交易对':<15} {'信号类型':<10} {'Gap(%)':<10} {'开仓价':<15} {'标记价':<15} {'时间'}")
+    output_lines.append("-" * 90)
+
+    # 表格内容
+    for i, signal in enumerate(all_signals, 1):
+        rank = f"{i}"
+        symbol = signal['symbol']
+        signal_type = signal['type']
+
+        # 格式化 gap，带正负号，保留4位小数
+        gap_value = signal['gap']
+        gap_percent = round(signal['gap_percent'],4)
+        gap_display = f"{gap_value:+.4f}"
+
+        # 显示百分比和原始值
+        gap_info = f"{gap_display}"
+
+        open_price = f"{signal['open_price']}"
+        mark_price = f"{signal['mark_price']}"
+        time = signal['time']
+
+        output_lines.append(
+            f"{rank:<5} {symbol:<15} {signal_type:<10} {gap_percent}{'%':<10} {open_price:<15} {mark_price:<15} {time}")
+
+    output_lines.append("")
+    output_lines.append("分析说明:")
+    output_lines.append("1. Gap: (标记价 - 开仓价) / 开仓价")
+    output_lines.append("2. 正值表示标记价高于开仓价，负值表示标记价低于开仓价")
+    output_lines.append("3. 按 |Gap| 从大到小排序")
+
+    # 添加统计信息
+    positive_gaps = [s for s in all_signals if s['gap'] > 0]
+    negative_gaps = [s for s in all_signals if s['gap'] < 0]
+
+    output_lines.append("")
+    output_lines.append("统计信息:")
+    output_lines.append(f"  上涨信号 (Gap>0): {len(positive_gaps)} 个")
+    output_lines.append(f"  下跌信号 (Gap<0): {len(negative_gaps)} 个")
+    output_lines.append(f"  最大涨幅: {max([s['gap'] for s in all_signals]) * 100:.2f}%" if all_signals else "无数据")
+    output_lines.append(f"  最大跌幅: {min([s['gap'] for s in all_signals]) * 100:.2f}%" if all_signals else "无数据")
+
+    return "\n".join(output_lines)
+
 if __name__ == '__main__':
     # 配置日志
     logging.basicConfig(
@@ -364,6 +471,11 @@ if __name__ == '__main__':
     print("\n3. 历史文件列表:")
     r.show_history_dates()
 
+    # 4.  更新历史文件内的json 默认近3天
+    # r.update_recent_history()  #update default 3 day before history file json s 
     print("\n" + "=" * 60)
     print("完成！")
     print("=" * 60)
+
+    data = analyze_gap_sorted_signals('2025-12-21.json')
+    print(data)
