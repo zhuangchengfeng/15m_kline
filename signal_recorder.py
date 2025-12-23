@@ -160,7 +160,7 @@ class SignalRecorder:
 
             # 计算所有未计算的gap
             for signal in self.data[symbol]["signals"]:
-                if signal["gap"] == 0.0 and signal["open_price"] > 0:
+                if mark_price > 0:
                     signal["gap"] = round((mark_price - signal["open_price"]) / signal["open_price"], 4)
 
             self.save()
@@ -336,7 +336,7 @@ class SignalRecorder:
 
             # 计算所有未计算的gap
             for signal in history_data[symbol]["signals"]:
-                if signal["gap"] == 0.0 and signal["open_price"] > 0:
+                if mark_price > 0:
                     signal["gap"] = round((mark_price - signal["open_price"]) / signal["open_price"], 4)
 
             # 保存
@@ -396,14 +396,13 @@ class SignalRecorder:
                     # 更新
                     history_data[symbol]["mark_price"] = mark_price
                     history_data[symbol]["update_time"] = update_time
-
                     # 计算gap
-                    for signal in history_data[symbol]["signals"]:
-                        if signal["gap"] == 0.0 and signal["open_price"] > 0:
-                            signal["gap"] = round((mark_price - signal["open_price"]) / signal["open_price"], 4)
+                    if history_data[symbol]['mark_price'] > 0 :
+                        for signal in history_data[symbol]["signals"]:
+                                signal["gap"] = round((mark_price - signal["open_price"]) / signal["open_price"], 4)
 
                     updated_count += 1
-                    logger.info(f"已更新 {symbol}: {mark_price}")
+                    # logger.info(f"已更新 {symbol}: {mark_price}")
 
                 except Exception as e:
                     logger.error(f"更新 {symbol} 失败: {e}")

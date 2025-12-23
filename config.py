@@ -29,12 +29,13 @@ class Config:
         'third_click': (200, 300)  #无作用
     }
     SCAN_INTERVALS = [0, 15, 30, 45]  # 扫描时间点（分钟）
-    SCAN_SECOND_DELAY = [2, 3]  # 扫描时间点（秒） list or int type
-    SCAN_INTERVALS_DEBUG = True  # 扫描时间调试（每分钟）
-    MAX_RETRIES = 5
+    SCAN_SECOND_DELAY = [5]  # 扫描时间点（秒） list or int type
+    SCAN_INTERVALS_DEBUG = False  # 扫描时间调试（每分钟）
+    MAX_RETRIES = 2
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
     KLINE_LIMIT = 5  # 默认5
     KLINE_INTERVAL = "15m"  # 默认15分钟
     MIN_VOLUME = 10000000  #  仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 80)  # 取涨幅榜前1到80品种
+    DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']

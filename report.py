@@ -3,7 +3,8 @@ from binance.um_futures import UMFutures
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, List, Tuple, Dict
-import os,json
+import os, json
+from config import Config
 # 导入信号记录器
 try:
     from signal_recorder import SignalRecorder
@@ -30,13 +31,121 @@ class Report:
         }
         self.client = UMFutures(proxies=self.proxies)
 
+        # 初始化价格缓存
+        self._price_cache = {}
+        self._cache_time = None
+        self._cache_max_age = 60  # 缓存最大有效期（秒）
+
         # 初始化日志
         self.logger = logging.getLogger(__name__)
 
+    def _refresh_price_cache(self):
+        """
+        刷新价格缓存，一次性获取所有交易对的价格
+        """
+        try:
+            current_time = datetime.now()
+
+            # 检查缓存是否过期
+            if (self._cache_time and
+                    (current_time - self._cache_time).total_seconds() < self._cache_max_age and
+                    self._price_cache):
+                return True
+
+            # 获取所有交易对的价格
+            all_prices = self.client.ticker_price()
+
+            # 更新缓存
+            self._price_cache = {}
+            for price_info in all_prices:
+                symbol = price_info['symbol']
+                price = float(price_info['price'])
+                self._price_cache[symbol] = price
+
+            self._cache_time = current_time
+            self.logger.debug(f"已更新价格缓存，共 {len(self._price_cache)} 个交易对")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"刷新价格缓存失败: {e}")
+            return False
+
     def latest_price(self, symbol):
         """获取最新价格"""
-        price = float(self.client.ticker_price(symbol)['price'])
-        return price
+        try:
+            # 先刷新缓存
+            if not self._refresh_price_cache():
+                # 如果刷新失败，则使用原始方法
+                return float(self.client.ticker_price(symbol)['price'])
+
+            # 从缓存中获取价格
+            if symbol in self._price_cache:
+                return self._price_cache[symbol]
+            else:
+                # 如果缓存中没有该symbol，尝试直接获取
+                self.logger.warning(f"缓存中未找到 {symbol}，尝试直接获取")
+                return float(self.client.ticker_price(symbol)['price'])
+
+        except Exception as e:
+            self.logger.error(f"获取 {symbol} 价格失败: {e}")
+            raise
+
+    def batch_latest_prices(self, symbols: List[str]) -> Dict[str, float]:
+        """
+        批量获取多个symbol的最新价格
+
+        Args:
+            symbols: 交易对列表
+
+        Returns:
+            Dict[str, float]: 交易对到价格的映射
+        """
+        try:
+            # 刷新缓存
+            if not self._refresh_price_cache():
+                # 如果刷新失败，则逐个获取
+                result = {}
+                for symbol in symbols:
+                    try:
+                        result[symbol] = float(self.client.ticker_price(symbol)['price'])
+                    except Exception as e:
+                        self.logger.error(f"获取 {symbol} 价格失败: {e}")
+                        result[symbol] = 0.0
+                return result
+
+            # 从缓存中批量获取
+            result = {}
+            missing_symbols = []
+
+            for symbol in symbols:
+                if symbol in self._price_cache:
+                    result[symbol] = self._price_cache[symbol]
+                else:
+                    missing_symbols.append(symbol)
+
+            # 处理缓存中没有的symbol
+            if missing_symbols:
+                self.logger.warning(f"缓存中缺少以下symbol: {missing_symbols}")
+                for symbol in missing_symbols:
+                    try:
+                        result[symbol] = float(self.client.ticker_price(symbol)['price'])
+                    except Exception as e:
+                        self.logger.error(f"获取 {symbol} 价格失败: {e}")
+                        result[symbol] = 0.0
+
+            return result
+
+        except Exception as e:
+            self.logger.error(f"批量获取价格失败: {e}")
+            # 降级为逐个获取
+            result = {}
+            for symbol in symbols:
+                try:
+                    result[symbol] = float(self.client.ticker_price(symbol)['price'])
+                except Exception as e:
+                    self.logger.error(f"获取 {symbol} 价格失败: {e}")
+                    result[symbol] = 0.0
+            return result
 
     def update_mark_price(self, symbol: str) -> bool:
         """
@@ -72,6 +181,7 @@ class Report:
         except Exception as e:
             self.logger.error(f"更新 {symbol} 价格失败: {e}")
             return False
+
     def update_all_mark_prices(self) -> bool:
         """
         更新所有已记录symbol的标记价格
@@ -105,19 +215,26 @@ class Report:
 
             self.logger.info(f"📊 发现 {len(symbols)} 个需要更新的symbol")
 
+            # 批量获取所有价格
+            self.logger.info("📡 批量获取所有symbol的价格...")
+            prices = self.batch_latest_prices(symbols)
+
             updated_count = 0
             update_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
             for symbol in symbols:
                 try:
-                    # 获取最新价格
-                    mark_price = self.latest_price(symbol)
+                    # 从批量结果中获取价格
+                    mark_price = prices.get(symbol)
+                    if mark_price is None or mark_price == 0.0:
+                        self.logger.warning(f"未能获取 {symbol} 的价格，跳过")
+                        continue
 
                     # 更新标记价格和更新时间
                     signal_recorder.update_mark_price(symbol, mark_price, update_time)
 
                     updated_count += 1
-                    self.logger.debug(f"已更新 {symbol}: {mark_price}")
+                    # self.logger.debug(f"已更新 {symbol}: {mark_price}")
 
                     # 每10个输出一次进度
                     if updated_count % 10 == 0:
@@ -145,6 +262,42 @@ class Report:
             traceback.print_exc()
             return False
 
+    def update_all_history_mark_prices(self, date_str: str, days_limit: int = 3) -> Tuple[int, int]:
+        """
+        更新历史文件中所有symbol的标记价格
+
+        Args:
+            date_str: 日期字符串
+            days_limit: 只更新几天内的数据，默认3天
+
+        Returns:
+            Tuple[int, int]: (成功更新数, 总symbol数)
+        """
+        if not RECORDER_AVAILABLE:
+            self.logger.warning("SignalRecorder不可用")
+            return 0, 0
+
+        # 优化后的价格获取函数
+        def get_price(symbol: str) -> float:
+            """内部函数用于获取价格"""
+            try:
+                # 先尝试从缓存获取
+                if self._refresh_price_cache() and symbol in self._price_cache:
+                    return self._price_cache[symbol]
+                else:
+                    return self.latest_price(symbol)
+            except Exception as e:
+                self.logger.error(f"获取 {symbol} 价格失败: {e}")
+                return 0.0
+
+        # 调用信号记录器的方法
+        updated_count, total_symbols = signal_recorder.update_all_history_mark_prices(
+            date_str, get_price, days_limit
+        )
+
+        return updated_count, total_symbols
+
+    # 以下方法保持不变...
     def update_history_mark_price(self, date_str: str, symbol: str) -> bool:
         """
         更新历史文件中指定symbol的标记价格
@@ -175,32 +328,6 @@ class Report:
         except Exception as e:
             self.logger.error(f"更新历史标记价格失败: {e}")
             return False
-
-    def update_all_history_mark_prices(self, date_str: str, days_limit: int = 3) -> Tuple[int, int]:
-        """
-        更新历史文件中所有symbol的标记价格
-
-        Args:
-            date_str: 日期字符串
-            days_limit: 只更新几天内的数据，默认3天
-
-        Returns:
-            Tuple[int, int]: (成功更新数, 总symbol数)
-        """
-        if not RECORDER_AVAILABLE:
-            self.logger.warning("SignalRecorder不可用")
-            return 0, 0
-
-        def get_price(symbol: str) -> float:
-            """内部函数用于获取价格"""
-            return self.latest_price(symbol)
-
-        # 调用信号记录器的方法
-        updated_count, total_symbols = signal_recorder.update_all_history_mark_prices(
-            date_str, get_price, days_limit
-        )
-
-        return updated_count, total_symbols
 
     def batch_update_history_dates(self, date_strings: List[str], days_limit: int = 3) -> Dict[str, Tuple[int, int]]:
         """
@@ -269,7 +396,6 @@ class Report:
         self.logger.info(f"📋 找到 {len(recent_dates)} 个需要更新的历史日期")
 
         # 批量更新
-        print(recent_dates)
         results = self.batch_update_history_dates(recent_dates, days_limit=days)
 
         # 汇总统计
@@ -309,11 +435,9 @@ class Report:
 
         today_str = datetime.now().strftime("%Y-%m-%d")
         data = signal_recorder.get_all_data()
-
         if not data:
             self.logger.info(f"📭 今天({today_str})没有数据")
             return
-
         self.logger.info(f"📊 今天({today_str})统计数据:")
         self.logger.info(f"  Symbol数量: {len(data)}")
 
@@ -323,14 +447,13 @@ class Report:
         for symbol, info in data.items():
             signals = info.get("signals", [])
             total_signals += len(signals)
-
             if info.get("update_time"):
                 symbols_with_update += 1
 
             # 显示收益统计
             if signals and info.get("mark_price", 0) > 0:
                 avg_gap = sum(s.get("gap", 0) for s in signals) / len(signals)
-                self.logger.debug(f"    {symbol}: {len(signals)}个信号, "
+                self.logger.info(f"    {symbol}: {len(signals)}个信号, "
                                   f"最新价: {info.get('mark_price', 'N/A')}, "
                                   f"平均收益: {avg_gap:.2%}")
 
@@ -338,7 +461,8 @@ class Report:
         self.logger.info(f"  已更新价格的symbol: {symbols_with_update}/{len(data)}")
 
 
-def analyze_gap_sorted_signals(json_file_path=None, json_data=None, top_n=None,default_file_path='signal_data/history/'):
+def analyze_gap_sorted_signals(json_name=None, json_data=None, top_n=None,
+                               ):
     """
     根据 gap 大小排序并生成信号分析信息
 
@@ -351,15 +475,21 @@ def analyze_gap_sorted_signals(json_file_path=None, json_data=None, top_n=None,d
     格式化的分析结果字符串
     """
     # 加载数据
-    file = default_file_path+json_file_path
-    if file:
-        if not os.path.exists(file):
-            return f"错误: 文件 '{json_file_path}' 不存在"
+    default_file_path = Config.DEFAULT_JSON_PATH
+    for i in default_file_path:
+        file = i + json_name
+        if os.path.exists(file):
 
+            break
+    else:
+        return f"错误: 文件 '{json_name}' 不存在"
+
+
+    if json_data :
+        data = json_data
+    elif json_name:
         with open(file=file, mode='r', encoding='utf-8') as f:
             data = json.load(f)
-    elif json_data:
-        data = json_data
     else:
         return "错误: 必须提供 json_file_path 或 json_data 参数"
 
@@ -412,7 +542,7 @@ def analyze_gap_sorted_signals(json_file_path=None, json_data=None, top_n=None,d
 
         # 格式化 gap，带正负号，保留4位小数
         gap_value = signal['gap']
-        gap_percent = round(signal['gap_percent'],4)
+        gap_percent = round(signal['gap_percent'], 4)
         gap_display = f"{gap_value:+.4f}"
 
         # 显示百分比和原始值
@@ -444,6 +574,7 @@ def analyze_gap_sorted_signals(json_file_path=None, json_data=None, top_n=None,d
 
     return "\n".join(output_lines)
 
+
 if __name__ == '__main__':
     # 配置日志
     logging.basicConfig(
@@ -463,19 +594,20 @@ if __name__ == '__main__':
     print("\n1. 归档文件并更新当天价格:")
     success = r.update_all_mark_prices()
 
-    # 2. 显示当天统计
+    # 2.  更新历史文件内的json 默认近3天
+    # r.update_recent_history()  # update default 3 day before history file json s
+
+    # 3. 显示当天统计
     print("\n2. 当天统计数据:")
     r.show_today_stats()
 
-    # 3. 显示历史日期
+    # 4. 显示历史日期
     print("\n3. 历史文件列表:")
-    r.show_history_dates()
+    # r.show_history_dates()
 
-    # 4.  更新历史文件内的json 默认近3天
-    # r.update_recent_history()  #update default 3 day before history file json s 
     print("\n" + "=" * 60)
     print("完成！")
     print("=" * 60)
-
-    data = analyze_gap_sorted_signals('2025-12-21.json')
+    # 5. 汇报指定json
+    data = analyze_gap_sorted_signals(json_name='2025-12-23.json')
     print(data)

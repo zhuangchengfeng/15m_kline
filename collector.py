@@ -43,7 +43,7 @@ class BinanceKlineCollector:
 
                                 if attempt < max_retries - 1:
                                     # 等待一小段时间后重试
-                                    await asyncio.sleep(1)
+                                    await asyncio.sleep(3)
                                     # 更新当前时间戳
                                     current_timestamp = time.time() * 1000
                                     continue
