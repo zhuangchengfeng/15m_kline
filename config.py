@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+import requests
 
 def display_status():
     """显示初始状态信息"""
@@ -19,10 +19,16 @@ def display_status():
     print("=" * 60)
     print("\n程序运行中...按 + 或 - 键开始操作")
 
+def get_exchange_info():
+    url = 'https://fapi.binance.com/fapi/v1/exchangeInfo'
+    res = requests.get(url=url,proxies={"http":'http://127.0.0.1:7890',"https":'http://127.0.0.1:7890'})
+    return res.json().get('rateLimits')[0].get('limit')
+
 
 # 配置类
 @dataclass
 class Config:
+    RATELIMIT = get_exchange_info()
     CLICK_COORDINATES = {
         'first_double_click': (165, 175),  #币安电脑端 查询品种坐标
         'second_click': (165, 300),  #默认下移125单位
@@ -34,6 +40,7 @@ class Config:
     MAX_RETRIES = 2
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
+    PROXY_D = {"http":'http://127.0.0.1:7890',"https":'http://127.0.0.1:7890'}
     KLINE_LIMIT = 5  # 默认5
     KLINE_INTERVAL = "15m"  # 默认15分钟
     MIN_VOLUME = 10000000  #  仅选择最小成交量需要大于MIN_VOLUME的品种

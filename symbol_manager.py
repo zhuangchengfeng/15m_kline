@@ -36,9 +36,9 @@ class SymbolManager:
         
         try:
             self.client = UMFutures(proxies=self.proxies)
-            logger.info("✅ 币安客户端初始化成功")
+            logger.info(f"✅ 信号管理器初始化成功 成交量设置为{min_volume}")
         except Exception as e:
-            logger.error(f"❌ 币安客户端初始化失败: {e}")
+            logger.error(f"❌ 信号管理器初始化失败: {e}")
             raise
         
         self.trading_symbols = []
@@ -101,7 +101,7 @@ class SymbolManager:
         filtered_data = []
         for attempt in range(max_retries):
             try:
-                tickers = self.client.ticker_24hr_price_change()
+                tickers = self.client.ticker_24hr_price_change()  #x-mbx-used-weight-1m 40
                 
                 # 转换为字典便于快速查找
                 ticker_dict = {ticker.get('symbol'): ticker for ticker in tickers}

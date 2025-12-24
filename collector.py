@@ -32,7 +32,6 @@ class BinanceKlineCollector:
                                            timeout=aiohttp.ClientTimeout(total=10)) as response:
                         if response.status == 200:
                             data = await response.json()
-
                             # 检查数据是否延迟（最新K线的收盘时间应该接近当前时间）
                             latest_close_time = data[-1][6]  # 最新一根K线的收盘时间
 

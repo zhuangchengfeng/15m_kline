@@ -12,7 +12,7 @@ from alert_manager import AlertManager
 from keyboard_handler import KeyboardHandler
 from signal_manager import SignalManager
 from mouse_operator import MouseOperator
-
+import requests
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[Dict[str, Any]]:
     """并发获取所有币种K线数据"""
     collector = BinanceKlineCollector(proxy)
@@ -92,7 +92,9 @@ class TradingSignalBot:
         # 检查是否需要扫描
         if self.should_scan(now):
             await self.perform_scan(now)
-
+            url = 'https://fapi.binance.com/fapi/v1/ping'
+            res = requests.get(url=url,proxies=Config.PROXY_D)
+            logger.info(f'本次扫描权重占用{res.headers.get("x-mbx-used-weight-1m")} / {Config.RATELIMIT} ')
         # 显示状态 - 实时更新
         current_time = time.time()
         if current_time - self.last_display_time >= 0.1:
