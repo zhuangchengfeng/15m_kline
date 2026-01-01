@@ -5,6 +5,33 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Tuple, Dict
 import os, json
 from config import Config
+import time
+import coloredlogs
+import logging
+
+# 配置彩色日志
+coloredlogs.install(
+    level='INFO',
+    fmt='%(asctime)s - %(name)s - %(message)s',  # 去掉levelname
+    datefmt='%Y-%m-%d %H:%M:%S',
+    field_styles={
+        'asctime': {'color': 'green'},
+        'name': {'color': 'blue', 'bold': True},
+        'message': {'color': 'white'}
+    },
+    level_styles={
+        'debug': {'color': 'cyan'},
+        'info': {'color': 'white'},
+        'warning': {'color': 'yellow', 'bold': True},
+        'error': {'color': 'red', 'bold': True},
+        'critical': {'color': 'red', 'bold': True, 'background': 'white'}
+    }
+)
+# 然后正常使用logger
+logger = logging.getLogger(__name__)
+
+
+
 # 导入信号记录器
 try:
     from signal_recorder import SignalRecorder
@@ -12,7 +39,6 @@ try:
     signal_recorder = SignalRecorder()
     RECORDER_AVAILABLE = True
 except ImportError:
-    logger = logging.getLogger(__name__)
     logger.warning("SignalRecorder未找到，标记价格将不会被更新")
     RECORDER_AVAILABLE = False
 
@@ -37,7 +63,7 @@ class Report:
         self._cache_max_age = 60  # 缓存最大有效期（秒）
 
         # 初始化日志
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
 
     def _refresh_price_cache(self):
         """
@@ -475,6 +501,72 @@ def analyze_gap_sorted_signals(json_name=None, json_data=None, top_n=None,
     格式化的分析结果字符串
     """
     # 加载数据
+    """
+    根据 gap 大小排序并生成信号分析信息
+    """
+    # 如果提供了json_name，先更新该文件的价格
+    if json_name and not json_data:
+        # 获取文件名中的日期部分（去掉.json）
+        date_str = json_name.replace('.json', '')
+
+        # 创建Report实例
+        r = Report()
+
+        # 检查是否是当天文件
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        if date_str == today_str:
+            # 更新当天文件
+            print(f"🔄 更新当天价格: {json_name}")
+            r.update_all_mark_prices()
+        else:
+            # 只更新指定的历史文件 - 直接读取文件并更新每个symbol
+            print(f"🔄 更新历史文件: {json_name}")
+
+            # 1. 找到文件路径
+            file_path = None
+            for base_path in Config.DEFAULT_JSON_PATH:
+                test_path = os.path.join(base_path, json_name)
+                if os.path.exists(test_path):
+                    file_path = test_path
+                    break
+
+            if not file_path:
+                print(f"❌ 未找到文件: {json_name}")
+            else:
+                # 2. 加载文件数据
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+
+                    # 3. 更新文件中每个symbol的价格
+                    symbols = list(data.keys())
+                    prices = r.batch_latest_prices(symbols)  # 批量获取价格
+
+                    updated_count = 0
+                    update_time = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+
+                    for symbol in symbols:
+                        mark_price = prices.get(symbol)
+                        if mark_price and mark_price > 0:
+                            # 更新标记价格
+                            data[symbol]["mark_price"] = mark_price
+                            data[symbol]["update_time"] = update_time
+
+                            # 计算所有信号的gap
+                            for signal in data[symbol].get("signals", []):
+                                signal["gap"] = round((mark_price - signal["open_price"]) / signal["open_price"], 4)
+
+                            updated_count += 1
+
+                    # 4. 保存更新后的文件
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        json.dump(data, f, indent=2, ensure_ascii=False)
+
+                    print(f"✅ 已更新 {updated_count}/{len(symbols)} 个symbol的价格")
+
+                except Exception as e:
+                    print(f"⚠️  更新文件失败: {e}")
     default_file_path = Config.DEFAULT_JSON_PATH
     for i in default_file_path:
         file = i + json_name
@@ -576,38 +668,26 @@ def analyze_gap_sorted_signals(json_name=None, json_data=None, top_n=None,
 
 
 if __name__ == '__main__':
-    # 配置日志
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
 
-    print("=" * 60)
-    print("           Report工具 - 更新JSON文件")
-    print("=" * 60)
+
+    # 这样所有的输出都会通过同一个处理器，保证顺序
+    logger.info("=" * 60)
+    logger.info("           Report工具 - 更新JSON文件")
+    logger.info("=" * 60)
 
     # 测试功能
     r = Report()
 
-    # 1. 归档文件并更新当天价格
-    print("\n1. 归档文件并更新当天价格:")
-    success = r.update_all_mark_prices()
-
-    # 2.  更新历史文件内的json 默认近3天
-    # r.update_recent_history()  # update default 3 day before history file json s
-
-    # 3. 显示当天统计
-    print("\n2. 当天统计数据:")
+    logger.warning("1. 当天统计数据:")
     r.show_today_stats()
 
-    # 4. 显示历史日期
-    print("\n3. 历史文件列表:")
-    # r.show_history_dates()
+    logger.warning("2. 历史文件列表:")
+    r.show_history_dates()
 
-    print("\n" + "=" * 60)
-    print("完成！")
-    print("=" * 60)
-    # 5. 汇报指定json
-    data = analyze_gap_sorted_signals(json_name='2025-12-23.json')
-    print(data)
+    logger.info("=" * 60)
+    logger.info("完成！")
+    logger.info("=" * 60)
+
+    logger.warning("3. 更新并汇报指定json:")
+    data = analyze_gap_sorted_signals(json_name='2026-01-02.json')
+    logger.info(data)

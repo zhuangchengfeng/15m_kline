@@ -13,7 +13,10 @@ from keyboard_handler import KeyboardHandler
 from signal_manager import SignalManager
 from mouse_operator import MouseOperator
 import requests
-async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[Dict[str, Any]]:
+
+
+async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[
+    Dict[str, Any]]:
     """并发获取所有币种K线数据"""
     collector = BinanceKlineCollector(proxy)
     tasks = [collector.fetch_kline(symbol, interval, limit, max_retries) for symbol in symbols]
@@ -93,7 +96,7 @@ class TradingSignalBot:
         if self.should_scan(now):
             await self.perform_scan(now)
             url = 'https://fapi.binance.com/fapi/v1/ping'
-            res = requests.get(url=url,proxies=Config.PROXY_D)
+            res = requests.get(url=url, proxies=Config.PROXY_D)
             logger.info(f'本次扫描权重占用{res.headers.get("x-mbx-used-weight-1m")} / {Config.RATELIMIT} ')
         # 显示状态 - 实时更新
         current_time = time.time()
@@ -125,10 +128,10 @@ class TradingSignalBot:
             if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 57:
                 return False
 
-            if isinstance(self.config.SCAN_SECOND_DELAY,list):
+            if isinstance(self.config.SCAN_SECOND_DELAY, list):
                 if now.second not in self.config.SCAN_SECOND_DELAY:
                     return False
-            elif isinstance(self.config.SCAN_SECOND_DELAY,int):
+            elif isinstance(self.config.SCAN_SECOND_DELAY, int):
                 if now.second != self.config.SCAN_SECOND_DELAY:
                     return False
 
@@ -169,33 +172,118 @@ class TradingSignalBot:
             logger.warning("import出错，使用示例币种")
             symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT']
 
-        # 并发获取数据
-        results = await fetch_all_kline(
-            symbols,
-            self.config.KLINE_INTERVAL,
-            self.config.KLINE_LIMIT,
-            self.config.PROXY,
-            self.config.MAX_RETRIES
-        )
+        # 并发获取数据 并存入字典Value
+        d = {}
+        for i in self.config.KLINE_INTERVAL_SORT:
+            results_aw = await fetch_all_kline(
+                symbols,
+                i,
+                self.config.KLINE_LIMIT,
+                self.config.PROXY,
+                self.config.MAX_RETRIES
+            )
+            d.update({i: results_aw})
 
         # 检测信号
+        signal_d = {}
+        for i in symbols:
+            signal_d.update({i: [0,None]})
         signal_symbols = []
-        for result in results:
-            if result['success']:
-                # 检测信号，自动记录且检查重复
-                has_signal = detect_signal(
-                    result['data'],
-                    result['symbol'],
-                    record_signal=True,
-                    check_duplicate=True
-                )
-                if has_signal:
-                    signal_symbols.append(result['symbol'])
+        for interval, results in d.items():
+            for result in results:
+                if result['success']:
+                    # 检测信号，自动记录且检查重复
+                    has_signal = detect_signal(
+                        interval,
+                        result['data'],
+                    )
+                    if has_signal:
+                        n = signal_d.get(result['symbol'])[0] + 1
+                        signal_d.update({result['symbol']: [n,result]})
+
+        count = len(self.config.KLINE_INTERVAL)
+        for k, v in signal_d.items():
+            if v[0] == count:
+                self.recorder(v[1])
+                signal_symbols.append(k)
 
         # 更新信号管理器
         self.signal_manager.update_signals(signal_symbols)
-
         return signal_symbols
+
+    def recorder(self,result: dict , record_signal: bool = True, check_duplicate: bool = True):
+        # 如果有信号且需要记录
+
+        if record_signal and self.config.RECORDER_AVAILABLE:
+            try:
+                # 获取开仓价格（使用latest['close']）
+
+                # 获取当前K线的open_time（当前正在运行的K线的开始时间）
+                # kline_data.iloc[-1] 是当前正在运行的K线
+                current_kline = result['data'].iloc[-1]
+
+                # 转换时间戳为北京时间
+                # 币安K线数据中的open_time是毫秒时间戳（Unix毫秒）
+                timestamp_ms = current_kline['open_time']
+
+                # 转换为秒（保留小数）
+                timestamp_seconds = timestamp_ms / 1000.0
+
+                # 创建UTC时间
+                utc_time = datetime.fromtimestamp(timestamp_seconds, tz=self.config.UTC_TZ)
+
+                # 转换为北京时间
+                beijing_time = utc_time.astimezone(self.config.BEIJING_TZ)
+
+                # 格式化为字符串
+                time_str = beijing_time.strftime("%Y/%m/%d %H:%M:%S")
+
+                # 调试信息：打印时间转换结果
+                logger.debug(f"时间转换: timestamp_ms={timestamp_ms}, "
+                             f"UTC={utc_time.strftime('%Y/%m/%d %H:%M:%S')}, "
+                             f"Beijing={time_str}")
+
+                # 记录信号（返回是否成功）
+                success, message = self.config.signal_recorder.add_signal(
+                    symbol=result['symbol'],
+                    signal_type='多周期混合信号',
+                    open_price=result['data'].iloc[-2]['close'],
+                    time_str=time_str,  # 使用K线开始时间的北京时间
+                    check_duplicate=check_duplicate
+                )
+
+                if not success:
+                    # 记录重复信号信息
+                    logger.debug(f"重复信号: {message}")
+                else:
+                    # 记录成功信息
+                    logger.info(f"✅ 记录信号: {result['symbol']} {'多周期混合信号'} 时间: {time_str} 价格: {result['data'].iloc[-2]['close']}")
+
+            except Exception as e:
+                logger.error(f"❌ 记录信号失败: {e}")
+                # 调试信息：打印异常详情
+                import traceback
+                logger.error(f"详细错误: {traceback.format_exc()}")
+
+                # 如果时间转换失败，尝试使用当前时间作为备选
+                try:
+                    backup_time_str = datetime.now(self.config.BEIJING_TZ).strftime("%Y/%m/%d %H:%M:%S")
+                    logger.warning(f"使用备选时间: {backup_time_str}")
+
+                    # 使用当前时间重新尝试记录
+                    success, message = self.config.signal_recorder.add_signal(
+                        symbol=result['symbol'],
+                        signal_type='多周期混合信号',
+                        open_price=result['data'].iloc[-2]['close'],
+                        time_str=backup_time_str,
+                        check_duplicate=check_duplicate
+                    )
+
+                    if success:
+                        logger.info(f"✅ 使用备选时间记录成功: {result['symbol']}")
+
+                except Exception as e2:
+                    logger.error(f"❌ 备选时间记录也失败: {e2}")
 
     async def handle_keyboard_events(self):
         """处理键盘事件"""
