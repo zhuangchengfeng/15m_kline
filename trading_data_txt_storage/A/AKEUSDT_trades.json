@@ -1,0 +1,46 @@
+{
+  "symbol": "AKEUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "AKEUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -3.77,
+    "avg_pnl": -3.77,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -3.77,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 19.0,
+    "best_trade": {
+      "pnl": -3.77,
+      "收益率": -1.87,
+      "date": "2025-12-19 20:11:36"
+    },
+    "worst_trade": {
+      "pnl": -3.77,
+      "收益率": -1.87,
+      "date": "2025-12-19 20:11:36"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "AKEUSDT",
+      "开仓价格": 0.000375,
+      "盈亏": -3.77,
+      "平仓价格": 0.000368,
+      "开仓时间": "2025-12-19 20:11:36",
+      "平仓时间": "2025-12-19 20:30:50",
+      "持仓时间": 19,
+      "收益率": -1.8666666666666685,
+      "是否盈利": false,
+      "pnl_abs": 3.77
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "symbol": "ZECUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "ZECUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -4.47,
+    "avg_pnl": -4.47,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -4.47,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 85.0,
+    "best_trade": {
+      "pnl": -4.47,
+      "收益率": -0.56,
+      "date": "2026-01-02 08:35:09"
+    },
+    "worst_trade": {
+      "pnl": -4.47,
+      "收益率": -0.56,
+      "date": "2026-01-02 08:35:09"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "ZECUSDT",
+      "开仓价格": 527.54,
+      "盈亏": -4.47,
+      "平仓价格": 524.58,
+      "开仓时间": "2026-01-02 08:35:09",
+      "平仓时间": "2026-01-02 10:00:16",
+      "持仓时间": 85,
+      "收益率": -0.5610948932782203,
+      "是否盈利": false,
+      "pnl_abs": 4.47
+    }
+  ]
+}

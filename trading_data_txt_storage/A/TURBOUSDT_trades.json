@@ -1,0 +1,46 @@
+{
+  "symbol": "TURBOUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "TURBOUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -3.56,
+    "avg_pnl": -3.56,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -3.56,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 3472.0,
+    "best_trade": {
+      "pnl": -3.56,
+      "收益率": -7.1,
+      "date": "2025-12-20 00:21:54"
+    },
+    "worst_trade": {
+      "pnl": -3.56,
+      "收益率": -7.1,
+      "date": "2025-12-20 00:21:54"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "TURBOUSDT",
+      "开仓价格": 0.001804,
+      "盈亏": -3.56,
+      "平仓价格": 0.001676,
+      "开仓时间": "2025-12-20 00:21:54",
+      "平仓时间": "2025-12-22 10:14:40",
+      "持仓时间": 3472,
+      "收益率": -7.095343680709538,
+      "是否盈利": false,
+      "pnl_abs": 3.56
+    }
+  ]
+}

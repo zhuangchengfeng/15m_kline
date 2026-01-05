@@ -1,0 +1,46 @@
+{
+  "symbol": "LSKUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "LSKUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -1.16,
+    "avg_pnl": -1.16,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -1.16,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 20.0,
+    "best_trade": {
+      "pnl": -1.16,
+      "收益率": -1.17,
+      "date": "2025-12-23 21:16:55"
+    },
+    "worst_trade": {
+      "pnl": -1.16,
+      "收益率": -1.17,
+      "date": "2025-12-23 21:16:55"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "LSKUSDT",
+      "开仓价格": 0.205,
+      "盈亏": -1.16,
+      "平仓价格": 0.2026,
+      "开仓时间": "2025-12-23 21:16:55",
+      "平仓时间": "2025-12-23 21:37:08",
+      "持仓时间": 20,
+      "收益率": -1.1707317073170662,
+      "是否盈利": false,
+      "pnl_abs": 1.16
+    }
+  ]
+}

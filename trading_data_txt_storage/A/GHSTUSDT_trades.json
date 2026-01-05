@@ -1,0 +1,46 @@
+{
+  "symbol": "GHSTUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "GHSTUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 13.22,
+    "avg_pnl": 13.22,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 13.22,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 35.0,
+    "best_trade": {
+      "pnl": 13.22,
+      "收益率": 1.89,
+      "date": "2025-12-18 10:09:40"
+    },
+    "worst_trade": {
+      "pnl": 13.22,
+      "收益率": 1.89,
+      "date": "2025-12-18 10:09:40"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "GHSTUSDT",
+      "开仓价格": 0.1907,
+      "盈亏": 13.22,
+      "平仓价格": 0.194305,
+      "开仓时间": "2025-12-18 10:09:40",
+      "平仓时间": "2025-12-18 10:45:29",
+      "持仓时间": 35,
+      "收益率": 1.890403775563711,
+      "是否盈利": true,
+      "pnl_abs": 13.22
+    }
+  ]
+}

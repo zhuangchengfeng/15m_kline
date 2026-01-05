@@ -1,0 +1,46 @@
+{
+  "symbol": "SUIUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:40",
+  "summary": {
+    "symbol": "SUIUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 3945.62,
+    "avg_pnl": 3945.62,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 3945.62,
+    "avg_duration_minutes": 27.0,
+    "best_trade": {
+      "pnl": 3945.62,
+      "收益率": 1.2,
+      "date": "2025-12-08 05:54:31"
+    },
+    "worst_trade": {
+      "pnl": 3945.62,
+      "收益率": 1.2,
+      "date": "2025-12-08 05:54:31"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "SUIUSDT",
+      "开仓价格": 1.590294,
+      "盈亏": 3945.62,
+      "平仓价格": 1.571243,
+      "开仓时间": "2025-12-08 05:54:31",
+      "平仓时间": "2025-12-08 06:21:44",
+      "持仓时间": 27,
+      "收益率": 1.1979545920439962,
+      "是否盈利": true,
+      "pnl_abs": 3945.62
+    }
+  ]
+}

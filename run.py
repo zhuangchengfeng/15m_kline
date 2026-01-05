@@ -13,6 +13,7 @@ from keyboard_handler import KeyboardHandler
 from signal_manager import SignalManager
 from mouse_operator import MouseOperator
 import requests
+from ema_atr_manager import EmaAtrManager
 
 
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[
@@ -38,6 +39,7 @@ class TradingSignalBot:
         self.kline_collector = BinanceKlineCollector(config.PROXY)
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
         self.mouse_operator = MouseOperator(config.CLICK_COORDINATES)  # 新增
+        self.ema_atr_operator = EmaAtrManager()
 
         self.running = False
         self.last_display_time = time.time()
@@ -195,7 +197,7 @@ class TradingSignalBot:
                     # 检测信号，自动记录且检查重复
                     has_signal = detect_signal(
                         interval,
-                        result['data'],
+                        result,
                     )
                     if has_signal:
                         n = signal_d.get(result['symbol'])[0] + 1

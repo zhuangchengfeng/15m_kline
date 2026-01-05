@@ -1,0 +1,46 @@
+{
+  "symbol": "RIVERUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:43",
+  "summary": {
+    "symbol": "RIVERUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 6544.17,
+    "avg_pnl": 6544.17,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 6544.17,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 50.0,
+    "best_trade": {
+      "pnl": 6544.17,
+      "收益率": 7.43,
+      "date": "2026-01-01 19:11:16"
+    },
+    "worst_trade": {
+      "pnl": 6544.17,
+      "收益率": 7.43,
+      "date": "2026-01-01 19:11:16"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "RIVERUSDT",
+      "开仓价格": 9.65191,
+      "盈亏": 6544.17,
+      "平仓价格": 10.368656,
+      "开仓时间": "2026-01-01 19:11:16",
+      "平仓时间": "2026-01-01 20:01:24",
+      "持仓时间": 50,
+      "收益率": 7.425949889710935,
+      "是否盈利": true,
+      "pnl_abs": 6544.17
+    }
+  ]
+}

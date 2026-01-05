@@ -608,8 +608,8 @@ def analyze_gap_sorted_signals(json_name=None, json_data=None, top_n=None,
     if not all_signals:
         return "未找到任何信号数据"
 
-    # 按 gap 绝对值排序（从大到小）
-    all_signals.sort(key=lambda x: x['gap_percent'], reverse=False)
+    # 按 *** 绝对值排序（从大到小）
+    all_signals.sort(key=lambda x: x['time'], reverse=False)
     # 如果指定了 top_n，只取前 N 个
     if top_n and top_n > 0:
         all_signals = all_signals[:top_n]
@@ -689,5 +689,5 @@ if __name__ == '__main__':
     logger.info("=" * 60)
 
     logger.warning("3. 更新并汇报指定json:")
-    data = analyze_gap_sorted_signals(json_name='2026-01-02.json')
+    data = analyze_gap_sorted_signals(json_name='2026-01-04.json')
     logger.info(data)

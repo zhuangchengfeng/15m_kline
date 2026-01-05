@@ -1,0 +1,46 @@
+{
+  "symbol": "ARUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "ARUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 0.38,
+    "avg_pnl": 0.38,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 0.38,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 521.0,
+    "best_trade": {
+      "pnl": 0.38,
+      "收益率": 0.77,
+      "date": "2025-12-20 01:33:35"
+    },
+    "worst_trade": {
+      "pnl": 0.38,
+      "收益率": 0.77,
+      "date": "2025-12-20 01:33:35"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "ARUSDT",
+      "开仓价格": 3.394,
+      "盈亏": 0.38,
+      "平仓价格": 3.42,
+      "开仓时间": "2025-12-20 01:33:35",
+      "平仓时间": "2025-12-20 10:14:35",
+      "持仓时间": 521,
+      "收益率": 0.7660577489687626,
+      "是否盈利": true,
+      "pnl_abs": 0.38
+    }
+  ]
+}

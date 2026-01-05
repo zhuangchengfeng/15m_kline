@@ -1,0 +1,46 @@
+{
+  "symbol": "BROCCOLIF3BUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "BROCCOLIF3BUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 2.69,
+    "avg_pnl": 2.69,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 2.69,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 4.0,
+    "best_trade": {
+      "pnl": 2.69,
+      "收益率": 1.8,
+      "date": "2026-01-01 11:18:22"
+    },
+    "worst_trade": {
+      "pnl": 2.69,
+      "收益率": 1.8,
+      "date": "2026-01-01 11:18:22"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "BROCCOLIF3BUSDT",
+      "开仓价格": 0.006272,
+      "盈亏": 2.69,
+      "平仓价格": 0.006385,
+      "开仓时间": "2026-01-01 11:18:22",
+      "平仓时间": "2026-01-01 11:22:30",
+      "持仓时间": 4,
+      "收益率": 1.8016581632653104,
+      "是否盈利": true,
+      "pnl_abs": 2.69
+    }
+  ]
+}

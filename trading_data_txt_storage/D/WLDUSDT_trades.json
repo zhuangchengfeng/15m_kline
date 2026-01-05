@@ -1,0 +1,46 @@
+{
+  "symbol": "WLDUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:43",
+  "summary": {
+    "symbol": "WLDUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 3771.26,
+    "avg_pnl": 3771.26,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 3771.26,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 304.0,
+    "best_trade": {
+      "pnl": 3771.26,
+      "收益率": 0.37,
+      "date": "2026-01-04 10:08:28"
+    },
+    "worst_trade": {
+      "pnl": 3771.26,
+      "收益率": 0.37,
+      "date": "2026-01-04 10:08:28"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "WLDUSDT",
+      "开仓价格": 0.5863772,
+      "盈亏": 3771.26,
+      "平仓价格": 0.5885568,
+      "开仓时间": "2026-01-04 10:08:28",
+      "平仓时间": "2026-01-04 15:12:43",
+      "持仓时间": 304,
+      "收益率": 0.37170613045663237,
+      "是否盈利": true,
+      "pnl_abs": 3771.26
+    }
+  ]
+}

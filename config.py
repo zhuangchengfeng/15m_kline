@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import requests
 from datetime import datetime, timezone, timedelta
 import logging
+from binance.um_futures import UMFutures
+
 # 导入信号记录器
 
 
@@ -51,6 +53,10 @@ def get_exchange_info():
 # 配置类
 @dataclass
 class Config:
+    UM_CLIENT = UMFutures(proxies={
+        "http": "http://127.0.0.1:7890",
+        "https": "http://127.0.0.1:7890"
+    })
     try:
         from signal_recorder import SignalRecorder
         signal_recorder = SignalRecorder()
@@ -74,9 +80,9 @@ class Config:
     PROXY = 'http://127.0.0.1:7890'
     PROXY_D = {"http":'http://127.0.0.1:7890',"https":'http://127.0.0.1:7890'}
     KLINE_INTERVAL = ['15m','1h']
-    KLINE_LIMIT = 5  # 默认5
+    KLINE_LIMIT = 499  #[1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
     MIN_VOLUME = 10000000  #  仅选择最小成交量需要大于MIN_VOLUME的品种
-    SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到80品种
+    SYMBOLS_RANGE = (1, 60)  # 取涨幅榜前1到80品种
     DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
     UTC_TZ = timezone.utc
     BEIJING_TZ = timezone(timedelta(hours=8))

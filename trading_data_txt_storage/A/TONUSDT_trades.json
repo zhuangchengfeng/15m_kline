@@ -1,0 +1,46 @@
+{
+  "symbol": "TONUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "TONUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 0.56,
+    "avg_pnl": 0.56,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 0.56,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 2.0,
+    "best_trade": {
+      "pnl": 0.56,
+      "收益率": 0.19,
+      "date": "2026-01-02 17:33:03"
+    },
+    "worst_trade": {
+      "pnl": 0.56,
+      "收益率": 0.19,
+      "date": "2026-01-02 17:33:03"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "TONUSDT",
+      "开仓价格": 1.732738,
+      "盈亏": 0.56,
+      "平仓价格": 1.736,
+      "开仓时间": "2026-01-02 17:33:03",
+      "平仓时间": "2026-01-02 17:35:58",
+      "持仓时间": 2,
+      "收益率": 0.18825696671972902,
+      "是否盈利": true,
+      "pnl_abs": 0.56
+    }
+  ]
+}

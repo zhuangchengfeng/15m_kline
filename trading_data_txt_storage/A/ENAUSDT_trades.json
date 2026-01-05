@@ -1,0 +1,46 @@
+{
+  "symbol": "ENAUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "ENAUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 2.76,
+    "avg_pnl": 2.76,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 2.76,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 59.0,
+    "best_trade": {
+      "pnl": 2.76,
+      "收益率": 0.92,
+      "date": "2026-01-03 10:41:25"
+    },
+    "worst_trade": {
+      "pnl": 2.76,
+      "收益率": 0.92,
+      "date": "2026-01-03 10:41:25"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "ENAUSDT",
+      "开仓价格": 0.2386,
+      "盈亏": 2.76,
+      "平仓价格": 0.2408,
+      "开仓时间": "2026-01-03 10:41:25",
+      "平仓时间": "2026-01-03 11:40:26",
+      "持仓时间": 59,
+      "收益率": 0.9220452640402261,
+      "是否盈利": true,
+      "pnl_abs": 2.76
+    }
+  ]
+}

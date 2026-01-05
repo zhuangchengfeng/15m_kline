@@ -3,6 +3,9 @@ import pandas as pd
 import logging
 from datetime import datetime, timezone, timedelta
 from config import Config
+from ema_atr_manager import EmaAtrManager
+
+ema_atr = EmaAtrManager()
 logger = logging.getLogger(__name__)
 
 # 设置北京时区
@@ -12,7 +15,7 @@ UTC_TZ = timezone.utc
 
 
 
-def detect_signal(interval_check, kline_data: pd.DataFrame) -> bool:
+def detect_signal(interval_check, result: dict) -> bool:
     """
     检测形态并可选地记录信号
 
@@ -25,15 +28,17 @@ def detect_signal(interval_check, kline_data: pd.DataFrame) -> bool:
     Returns:
         bool: 是否有信号
     """
+    kline_data = result['data']
+    kline_data:pd.DataFrame
     if kline_data is None or len(kline_data) < Config.KLINE_LIMIT:
         return False
-
+    current = kline_data.iloc[-1]
     prev = kline_data.iloc[-3]  # 前一根K线
     latest = kline_data.iloc[-2]  # 最新K线
     extra_prev = kline_data.iloc[-4]
     extra_prev_2 = kline_data.iloc[-5]
-    open_price = float(latest['close'])
 
+    atrdiffemacheck = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check)
     has_signal = False
 
     def price_power(x):
@@ -44,13 +49,19 @@ def detect_signal(interval_check, kline_data: pd.DataFrame) -> bool:
 
     if interval_check == '15m':
         c = (latest['close'] > latest['open']) and (prev['close'] < prev['open']) and price_power(0.618)
-        if c:
+        if c and atrdiffemacheck:
             has_signal = True
 
     if interval_check == '1h':
         c = (latest['low'] > prev['low']) and (latest['high'] > prev['high']) and (latest['close'] > latest['open'])
-        if c:
+        # cc = (current['low'] < latest['low']) and (current['low'] < prev['low']) and (current['low'] < extra_prev['low'])
+        # d = (latest['high']-latest['close']) < (latest['close']-latest['low']) * 1
+        e = (latest['low'] <= extra_prev['high'])
+        f = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
+        if e and c and f and atrdiffemacheck:
             has_signal = True
+        # if (c or cc) and d and e:
+        #     has_signal = True
 
     return has_signal
 

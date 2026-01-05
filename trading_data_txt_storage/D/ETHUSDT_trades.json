@@ -1,0 +1,46 @@
+{
+  "symbol": "ETHUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:43",
+  "summary": {
+    "symbol": "ETHUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 6327.34,
+    "avg_pnl": 6327.34,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 6327.34,
+    "avg_duration_minutes": 18.0,
+    "best_trade": {
+      "pnl": 6327.34,
+      "收益率": 0.0,
+      "date": "2026-01-03 01:31:19"
+    },
+    "worst_trade": {
+      "pnl": 6327.34,
+      "收益率": 0.0,
+      "date": "2026-01-03 01:31:19"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "ETHUSDT",
+      "开仓价格": 3.0,
+      "盈亏": 6327.34,
+      "平仓价格": 3.0,
+      "开仓时间": "2026-01-03 01:31:19",
+      "平仓时间": "2026-01-03 01:49:51",
+      "持仓时间": 18,
+      "收益率": 0.0,
+      "是否盈利": true,
+      "pnl_abs": 6327.34
+    }
+  ]
+}

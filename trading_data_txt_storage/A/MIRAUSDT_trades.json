@@ -1,0 +1,46 @@
+{
+  "symbol": "MIRAUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "MIRAUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 3.12,
+    "avg_pnl": 3.12,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 3.12,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 5.0,
+    "best_trade": {
+      "pnl": 3.12,
+      "收益率": 1.04,
+      "date": "2026-01-01 19:01:31"
+    },
+    "worst_trade": {
+      "pnl": 3.12,
+      "收益率": 1.04,
+      "date": "2026-01-01 19:01:31"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "MIRAUSDT",
+      "开仓价格": 0.147857,
+      "盈亏": 3.12,
+      "平仓价格": 0.1494,
+      "开仓时间": "2026-01-01 19:01:31",
+      "平仓时间": "2026-01-01 19:07:20",
+      "持仓时间": 5,
+      "收益率": 1.043575887512946,
+      "是否盈利": true,
+      "pnl_abs": 3.12
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "symbol": "WLFIUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:43",
+  "summary": {
+    "symbol": "WLFIUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 24558.69,
+    "avg_pnl": 24558.69,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 24558.69,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 119.0,
+    "best_trade": {
+      "pnl": 24558.69,
+      "收益率": 1.22,
+      "date": "2026-01-04 08:02:44"
+    },
+    "worst_trade": {
+      "pnl": 24558.69,
+      "收益率": 1.22,
+      "date": "2026-01-04 08:02:44"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "WLFIUSDT",
+      "开仓价格": 0.1755297,
+      "盈亏": 24558.69,
+      "平仓价格": 0.1776786,
+      "开仓时间": "2026-01-04 08:02:44",
+      "平仓时间": "2026-01-04 10:02:43",
+      "持仓时间": 119,
+      "收益率": 1.2242372658302165,
+      "是否盈利": true,
+      "pnl_abs": 24558.69
+    }
+  ]
+}

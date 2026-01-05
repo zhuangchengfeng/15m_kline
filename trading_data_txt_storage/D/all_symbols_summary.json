@@ -1,0 +1,522 @@
+{
+  "total_trades": 46,
+  "unique_symbols": 19,
+  "symbols": [
+    "DOGEUSDT",
+    "EVAAUSDT",
+    "WLDUSDT",
+    "WLFIUSDT",
+    "CVXUSDT",
+    "MYXUSDT",
+    "PIPPINUSDT",
+    "BUSDT",
+    "1000PEPEUSDT",
+    "TURBOUSDT",
+    "SUIUSDT",
+    "ETHUSDT",
+    "FILUSDT",
+    "A2ZUSDT",
+    "USELESSUSDT",
+    "PIEVERSEUSDT",
+    "LIGHTUSDT",
+    "RIVERUSDT",
+    "BROCCOLI714USDT"
+  ],
+  "last_updated": "2026-01-05 14:27:43",
+  "symbols_summary": [
+    {
+      "symbol": "1000PEPEUSDT",
+      "total_trades": 9,
+      "profitable_trades": 9,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 150495.29,
+      "avg_pnl": 16721.7,
+      "buy_trades": 7,
+      "sell_trades": 2,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 141858.49,
+      "sell_total_pnl": 8636.8,
+      "avg_duration_minutes": 60.4,
+      "best_trade": {
+        "pnl": 41828.74,
+        "收益率": 3.62,
+        "date": "2026-01-02 19:17:07"
+      },
+      "worst_trade": {
+        "pnl": 2566.56,
+        "收益率": 0.17,
+        "date": "2026-01-03 00:58:10"
+      }
+    },
+    {
+      "symbol": "DOGEUSDT",
+      "total_trades": 6,
+      "profitable_trades": 5,
+      "losing_trades": 1,
+      "win_rate": 83.33,
+      "total_pnl": 36585.85,
+      "avg_pnl": 6097.64,
+      "buy_trades": 5,
+      "sell_trades": 1,
+      "buy_win_rate": 80.0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 27420.98,
+      "sell_total_pnl": 9164.87,
+      "avg_duration_minutes": 201.5,
+      "best_trade": {
+        "pnl": 21562.23,
+        "收益率": 1.47,
+        "date": "2026-01-02 00:46:06"
+      },
+      "worst_trade": {
+        "pnl": -29336.79,
+        "收益率": -0.9,
+        "date": "2026-01-03 20:11:14"
+      }
+    },
+    {
+      "symbol": "WLFIUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 24558.69,
+      "avg_pnl": 24558.69,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 24558.69,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 119.0,
+      "best_trade": {
+        "pnl": 24558.69,
+        "收益率": 1.22,
+        "date": "2026-01-04 08:02:44"
+      },
+      "worst_trade": {
+        "pnl": 24558.69,
+        "收益率": 1.22,
+        "date": "2026-01-04 08:02:44"
+      }
+    },
+    {
+      "symbol": "BROCCOLI714USDT",
+      "total_trades": 2,
+      "profitable_trades": 2,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 12020.04,
+      "avg_pnl": 6010.02,
+      "buy_trades": 1,
+      "sell_trades": 1,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 8909.59,
+      "sell_total_pnl": 3110.45,
+      "avg_duration_minutes": 10.5,
+      "best_trade": {
+        "pnl": 8909.59,
+        "收益率": 17.93,
+        "date": "2026-01-01 18:11:22"
+      },
+      "worst_trade": {
+        "pnl": 3110.45,
+        "收益率": 4.25,
+        "date": "2026-01-01 18:27:54"
+      }
+    },
+    {
+      "symbol": "SUIUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 9496.19,
+      "avg_pnl": 9496.19,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 9496.19,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 22.0,
+      "best_trade": {
+        "pnl": 9496.19,
+        "收益率": 0.78,
+        "date": "2026-01-03 05:30:56"
+      },
+      "worst_trade": {
+        "pnl": 9496.19,
+        "收益率": 0.78,
+        "date": "2026-01-03 05:30:56"
+      }
+    },
+    {
+      "symbol": "RIVERUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 6544.17,
+      "avg_pnl": 6544.17,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 6544.17,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 50.0,
+      "best_trade": {
+        "pnl": 6544.17,
+        "收益率": 7.43,
+        "date": "2026-01-01 19:11:16"
+      },
+      "worst_trade": {
+        "pnl": 6544.17,
+        "收益率": 7.43,
+        "date": "2026-01-01 19:11:16"
+      }
+    },
+    {
+      "symbol": "ETHUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 6327.34,
+      "avg_pnl": 6327.34,
+      "buy_trades": 0,
+      "sell_trades": 1,
+      "buy_win_rate": 0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 0,
+      "sell_total_pnl": 6327.34,
+      "avg_duration_minutes": 18.0,
+      "best_trade": {
+        "pnl": 6327.34,
+        "收益率": 0.0,
+        "date": "2026-01-03 01:31:19"
+      },
+      "worst_trade": {
+        "pnl": 6327.34,
+        "收益率": 0.0,
+        "date": "2026-01-03 01:31:19"
+      }
+    },
+    {
+      "symbol": "FILUSDT",
+      "total_trades": 4,
+      "profitable_trades": 3,
+      "losing_trades": 1,
+      "win_rate": 75.0,
+      "total_pnl": 6285.28,
+      "avg_pnl": 1571.32,
+      "buy_trades": 4,
+      "sell_trades": 0,
+      "buy_win_rate": 75.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 6285.28,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 140.2,
+      "best_trade": {
+        "pnl": 17599.33,
+        "收益率": 2.59,
+        "date": "2026-01-01 23:02:25"
+      },
+      "worst_trade": {
+        "pnl": -24772.41,
+        "收益率": -2.31,
+        "date": "2026-01-02 11:06:38"
+      }
+    },
+    {
+      "symbol": "WLDUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 3771.26,
+      "avg_pnl": 3771.26,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 3771.26,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 304.0,
+      "best_trade": {
+        "pnl": 3771.26,
+        "收益率": 0.37,
+        "date": "2026-01-04 10:08:28"
+      },
+      "worst_trade": {
+        "pnl": 3771.26,
+        "收益率": 0.37,
+        "date": "2026-01-04 10:08:28"
+      }
+    },
+    {
+      "symbol": "PIPPINUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 3017.68,
+      "avg_pnl": 3017.68,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 3017.68,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 17.0,
+      "best_trade": {
+        "pnl": 3017.68,
+        "收益率": 0.61,
+        "date": "2026-01-04 05:35:12"
+      },
+      "worst_trade": {
+        "pnl": 3017.68,
+        "收益率": 0.61,
+        "date": "2026-01-04 05:35:12"
+      }
+    },
+    {
+      "symbol": "MYXUSDT",
+      "total_trades": 6,
+      "profitable_trades": 3,
+      "losing_trades": 3,
+      "win_rate": 50.0,
+      "total_pnl": 2754.28,
+      "avg_pnl": 459.05,
+      "buy_trades": 2,
+      "sell_trades": 4,
+      "buy_win_rate": 50.0,
+      "sell_win_rate": 50.0,
+      "buy_total_pnl": -4930.14,
+      "sell_total_pnl": 7684.42,
+      "avg_duration_minutes": 16.8,
+      "best_trade": {
+        "pnl": 19592.96,
+        "收益率": 7.38,
+        "date": "2026-01-03 17:20:34"
+      },
+      "worst_trade": {
+        "pnl": -17549.09,
+        "收益率": -3.3,
+        "date": "2026-01-04 05:53:30"
+      }
+    },
+    {
+      "symbol": "BUSDT",
+      "total_trades": 3,
+      "profitable_trades": 2,
+      "losing_trades": 1,
+      "win_rate": 66.67,
+      "total_pnl": 919.3,
+      "avg_pnl": 306.43,
+      "buy_trades": 1,
+      "sell_trades": 2,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 50.0,
+      "buy_total_pnl": 11466.06,
+      "sell_total_pnl": -10546.76,
+      "avg_duration_minutes": 13.7,
+      "best_trade": {
+        "pnl": 11466.06,
+        "收益率": 4.64,
+        "date": "2026-01-04 01:44:39"
+      },
+      "worst_trade": {
+        "pnl": -13296.78,
+        "收益率": -5.47,
+        "date": "2026-01-03 19:33:26"
+      }
+    },
+    {
+      "symbol": "TURBOUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 45.88,
+      "avg_pnl": 45.88,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 45.88,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 3.0,
+      "best_trade": {
+        "pnl": 45.88,
+        "收益率": 0.1,
+        "date": "2026-01-03 10:44:27"
+      },
+      "worst_trade": {
+        "pnl": 45.88,
+        "收益率": 0.1,
+        "date": "2026-01-03 10:44:27"
+      }
+    },
+    {
+      "symbol": "PIEVERSEUSDT",
+      "total_trades": 2,
+      "profitable_trades": 0,
+      "losing_trades": 2,
+      "win_rate": 0.0,
+      "total_pnl": -18.71,
+      "avg_pnl": -9.36,
+      "buy_trades": 2,
+      "sell_trades": 0,
+      "buy_win_rate": 0.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": -18.71,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 0.0,
+      "best_trade": {
+        "pnl": -1.93,
+        "收益率": -0.08,
+        "date": "2026-01-01 20:51:12"
+      },
+      "worst_trade": {
+        "pnl": -16.78,
+        "收益率": -0.34,
+        "date": "2026-01-01 20:34:58"
+      }
+    },
+    {
+      "symbol": "LIGHTUSDT",
+      "total_trades": 3,
+      "profitable_trades": 1,
+      "losing_trades": 2,
+      "win_rate": 33.33,
+      "total_pnl": -2358.65,
+      "avg_pnl": -786.22,
+      "buy_trades": 1,
+      "sell_trades": 2,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0.0,
+      "buy_total_pnl": 643.46,
+      "sell_total_pnl": -3002.11,
+      "avg_duration_minutes": 43.3,
+      "best_trade": {
+        "pnl": 643.46,
+        "收益率": 5.27,
+        "date": "2026-01-01 20:05:36"
+      },
+      "worst_trade": {
+        "pnl": -1843.23,
+        "收益率": -3.78,
+        "date": "2026-01-01 16:50:50"
+      }
+    },
+    {
+      "symbol": "USELESSUSDT",
+      "total_trades": 1,
+      "profitable_trades": 0,
+      "losing_trades": 1,
+      "win_rate": 0.0,
+      "total_pnl": -3531.42,
+      "avg_pnl": -3531.42,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 0.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": -3531.42,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 63.0,
+      "best_trade": {
+        "pnl": -3531.42,
+        "收益率": -3.89,
+        "date": "2026-01-01 21:54:45"
+      },
+      "worst_trade": {
+        "pnl": -3531.42,
+        "收益率": -3.89,
+        "date": "2026-01-01 21:54:45"
+      }
+    },
+    {
+      "symbol": "EVAAUSDT",
+      "total_trades": 1,
+      "profitable_trades": 0,
+      "losing_trades": 1,
+      "win_rate": 0.0,
+      "total_pnl": -6849.57,
+      "avg_pnl": -6849.57,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 0.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": -6849.57,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 166.0,
+      "best_trade": {
+        "pnl": -6849.57,
+        "收益率": -7.65,
+        "date": "2026-01-04 15:34:30"
+      },
+      "worst_trade": {
+        "pnl": -6849.57,
+        "收益率": -7.65,
+        "date": "2026-01-04 15:34:30"
+      }
+    },
+    {
+      "symbol": "A2ZUSDT",
+      "total_trades": 1,
+      "profitable_trades": 0,
+      "losing_trades": 1,
+      "win_rate": 0.0,
+      "total_pnl": -13082.16,
+      "avg_pnl": -13082.16,
+      "buy_trades": 0,
+      "sell_trades": 1,
+      "buy_win_rate": 0,
+      "sell_win_rate": 0.0,
+      "buy_total_pnl": 0,
+      "sell_total_pnl": -13082.16,
+      "avg_duration_minutes": 0.0,
+      "best_trade": {
+        "pnl": -13082.16,
+        "收益率": -21.57,
+        "date": "2026-01-01 22:58:52"
+      },
+      "worst_trade": {
+        "pnl": -13082.16,
+        "收益率": -21.57,
+        "date": "2026-01-01 22:58:52"
+      }
+    },
+    {
+      "symbol": "CVXUSDT",
+      "total_trades": 1,
+      "profitable_trades": 0,
+      "losing_trades": 1,
+      "win_rate": 0.0,
+      "total_pnl": -24078.23,
+      "avg_pnl": -24078.23,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 0.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": -24078.23,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 109.0,
+      "best_trade": {
+        "pnl": -24078.23,
+        "收益率": -4.78,
+        "date": "2026-01-04 06:11:43"
+      },
+      "worst_trade": {
+        "pnl": -24078.23,
+        "收益率": -4.78,
+        "date": "2026-01-04 06:11:43"
+      }
+    }
+  ]
+}

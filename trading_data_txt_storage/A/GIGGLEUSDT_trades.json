@@ -1,0 +1,46 @@
+{
+  "symbol": "GIGGLEUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "GIGGLEUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -5.18,
+    "avg_pnl": -5.18,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -5.18,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 5.0,
+    "best_trade": {
+      "pnl": -5.18,
+      "收益率": -1.49,
+      "date": "2025-12-23 21:19:19"
+    },
+    "worst_trade": {
+      "pnl": -5.18,
+      "收益率": -1.49,
+      "date": "2025-12-23 21:19:19"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "GIGGLEUSDT",
+      "开仓价格": 71.57143,
+      "盈亏": -5.18,
+      "平仓价格": 70.50801,
+      "开仓时间": "2025-12-23 21:19:19",
+      "平仓时间": "2025-12-23 21:25:06",
+      "持仓时间": 5,
+      "收益率": -1.4858163376084672,
+      "是否盈利": false,
+      "pnl_abs": 5.18
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "symbol": "EPICUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "EPICUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -5.79,
+    "avg_pnl": -5.79,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -5.79,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 12.0,
+    "best_trade": {
+      "pnl": -5.79,
+      "收益率": -1.93,
+      "date": "2025-12-17 19:46:21"
+    },
+    "worst_trade": {
+      "pnl": -5.79,
+      "收益率": -1.93,
+      "date": "2025-12-17 19:46:21"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "EPICUSDT",
+      "开仓价格": 0.6057,
+      "盈亏": -5.79,
+      "平仓价格": 0.594,
+      "开仓时间": "2025-12-17 19:46:21",
+      "平仓时间": "2025-12-17 19:58:39",
+      "持仓时间": 12,
+      "收益率": -1.9316493313521614,
+      "是否盈利": false,
+      "pnl_abs": 5.79
+    }
+  ]
+}

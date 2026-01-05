@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易数据分析报告</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .summary-box {
+            background: #e8f5e9;
+            border-left: 5px solid #4CAF50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            border: none;
+        }
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .stat-card .negative {
+            color: #f44336;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #4CAF50;
+            color: white;
+        }
+        .symbol-row {
+            cursor: pointer;
+            background: #f8f9fa;
+        }
+        .symbol-row:hover {
+            background-color: #e9ecef !important;
+        }
+        .trades-detail {
+            background: #f9f9f9;
+        }
+        .trades-detail table {
+            margin: 0;
+            background: white;
+            border: 1px solid #ddd;
+        }
+        .trades-detail th {
+            background: #f8f9fa;
+            color: #495057;
+            font-size: 11px;
+            padding: 8px;
+        }
+        .trades-detail td {
+            padding: 8px;
+            font-size: 11px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .positive {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .negative {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 交易数据分析报告</h1>
+        <p>生成时间: 2026-01-05 14:27:43</p>
+
+        <div class="summary-box">
+            <h2>总体统计</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>总交易笔数</h3>
+                    <div class="value">46</div>
+                </div>
+                <div class="stat-card">
+                    <h3>胜率</h3>
+                    <div class="value">69.6%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>总盈亏</h3>
+                    <div class="value positive">+212902.51 USDT</div>
+                </div>
+                <div class="stat-card">
+                    <h3>平均每笔盈亏</h3>
+                    <div class="value positive">+4628.32 USDT</div>
+                </div>
+            </div>
+        </div>
+
+        <h2>品种盈亏排行</h2>
+        <table id="symbols-table">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>品种</th>
+                    <th>交易笔数</th>
+                    <th>胜率</th>
+                    <th>总盈亏</th>
+                    <th>平均盈亏</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="symbol-row" onclick="toggleTrades(this, '1000PEPEUSDT')">
+                    <td>1</td>
+                    <td>1000PEPEUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>9</td>
+                    <td>100.0%</td>
+                    <td class="positive">+150495.29</td>
+                    <td class="positive">+16721.70</td>
+                </tr>
+                <tr id="trades-1000PEPEUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">1000PEPEUSDT 交易详情 (9 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-02 19:17:07</td>
+                                        <td>2026-01-02 20:34:20</td>
+                                        <td>0.005269</td>
+                                        <td>0.005460</td>
+                                        <td>3.62%</td>
+                                        <td class="positive">+41828.74</td>
+                                        <td>77</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 00:03:51</td>
+                                        <td>2026-01-04 00:22:50</td>
+                                        <td>0.006142</td>
+                                        <td>0.006220</td>
+                                        <td>1.27%</td>
+                                        <td class="positive">+33943.55</td>
+                                        <td>18</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 03:23:34</td>
+                                        <td>2026-01-03 05:23:25</td>
+                                        <td>0.005910</td>
+                                        <td>0.005947</td>
+                                        <td>0.63%</td>
+                                        <td class="positive">+19481.57</td>
+                                        <td>119</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 06:24:24</td>
+                                        <td>2026-01-03 10:02:01</td>
+                                        <td>0.005934</td>
+                                        <td>0.006062</td>
+                                        <td>2.16%</td>
+                                        <td class="positive">+18140.65</td>
+                                        <td>217</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 00:24:32</td>
+                                        <td>2026-01-04 00:27:52</td>
+                                        <td>0.006156</td>
+                                        <td>0.006208</td>
+                                        <td>0.84%</td>
+                                        <td class="positive">+10343.57</td>
+                                        <td>3</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 00:34:57</td>
+                                        <td>2026-01-04 01:43:23</td>
+                                        <td>0.006130</td>
+                                        <td>0.006146</td>
+                                        <td>0.26%</td>
+                                        <td class="positive">+9303.47</td>
+                                        <td>68</td>
+                                    </tr>
+                                    <tr>
+                                        <td>7</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 02:44:38</td>
+                                        <td>2026-01-03 03:14:52</td>
+                                        <td>0.005920</td>
+                                        <td>0.005946</td>
+                                        <td>0.44%</td>
+                                        <td class="positive">+8816.94</td>
+                                        <td>30</td>
+                                    </tr>
+                                    <tr>
+                                        <td>8</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 00:52:42</td>
+                                        <td>2026-01-03 00:54:29</td>
+                                        <td>0.006020</td>
+                                        <td>0.005925</td>
+                                        <td>1.58%</td>
+                                        <td class="positive">+6070.24</td>
+                                        <td>1</td>
+                                    </tr>
+                                    <tr>
+                                        <td>9</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 00:58:10</td>
+                                        <td>2026-01-03 01:09:39</td>
+                                        <td>0.005973</td>
+                                        <td>0.005963</td>
+                                        <td>0.17%</td>
+                                        <td class="positive">+2566.56</td>
+                                        <td>11</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'DOGEUSDT')">
+                    <td>2</td>
+                    <td>DOGEUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>6</td>
+                    <td>83.3%</td>
+                    <td class="positive">+36585.85</td>
+                    <td class="positive">+6097.64</td>
+                </tr>
+                <tr id="trades-DOGEUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">DOGEUSDT 交易详情 (6 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-02 00:46:06</td>
+                                        <td>2026-01-02 11:00:13</td>
+                                        <td>0.124906</td>
+                                        <td>0.126744</td>
+                                        <td>1.47%</td>
+                                        <td class="positive">+21562.23</td>
+                                        <td>614</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 04:00:01</td>
+                                        <td>2026-01-04 05:26:26</td>
+                                        <td>0.141752</td>
+                                        <td>0.142426</td>
+                                        <td>0.48%</td>
+                                        <td class="positive">+16418.23</td>
+                                        <td>86</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 18:23:26</td>
+                                        <td>2026-01-04 20:26:23</td>
+                                        <td>0.152493</td>
+                                        <td>0.153891</td>
+                                        <td>0.92%</td>
+                                        <td class="positive">+13183.31</td>
+                                        <td>122</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 11:24:10</td>
+                                        <td>2026-01-03 13:32:18</td>
+                                        <td>0.143353</td>
+                                        <td>0.142622</td>
+                                        <td>0.51%</td>
+                                        <td class="positive">+9164.87</td>
+                                        <td>128</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 16:09:46</td>
+                                        <td>2026-01-03 16:37:50</td>
+                                        <td>0.140060</td>
+                                        <td>0.140874</td>
+                                        <td>0.58%</td>
+                                        <td class="positive">+5594.00</td>
+                                        <td>28</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 20:11:14</td>
+                                        <td>2026-01-04 00:02:46</td>
+                                        <td>0.142671</td>
+                                        <td>0.141388</td>
+                                        <td>-0.90%</td>
+                                        <td class="negative">-29336.79</td>
+                                        <td>231</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'WLFIUSDT')">
+                    <td>3</td>
+                    <td>WLFIUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+24558.69</td>
+                    <td class="positive">+24558.69</td>
+                </tr>
+                <tr id="trades-WLFIUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">WLFIUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 08:02:44</td>
+                                        <td>2026-01-04 10:02:43</td>
+                                        <td>0.175530</td>
+                                        <td>0.177679</td>
+                                        <td>1.22%</td>
+                                        <td class="positive">+24558.69</td>
+                                        <td>119</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'BROCCOLI714USDT')">
+                    <td>4</td>
+                    <td>BROCCOLI714USDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>2</td>
+                    <td>100.0%</td>
+                    <td class="positive">+12020.04</td>
+                    <td class="positive">+6010.02</td>
+                </tr>
+                <tr id="trades-BROCCOLI714USDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">BROCCOLI714USDT 交易详情 (2 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 18:11:22</td>
+                                        <td>2026-01-01 18:25:14</td>
+                                        <td>0.019616</td>
+                                        <td>0.023133</td>
+                                        <td>17.93%</td>
+                                        <td class="positive">+8909.59</td>
+                                        <td>13</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-01 18:27:54</td>
+                                        <td>2026-01-01 18:36:10</td>
+                                        <td>0.023848</td>
+                                        <td>0.022834</td>
+                                        <td>4.25%</td>
+                                        <td class="positive">+3110.45</td>
+                                        <td>8</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'SUIUSDT')">
+                    <td>5</td>
+                    <td>SUIUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+9496.19</td>
+                    <td class="positive">+9496.19</td>
+                </tr>
+                <tr id="trades-SUIUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">SUIUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 05:30:56</td>
+                                        <td>2026-01-03 05:53:35</td>
+                                        <td>1.623157</td>
+                                        <td>1.635842</td>
+                                        <td>0.78%</td>
+                                        <td class="positive">+9496.19</td>
+                                        <td>22</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'RIVERUSDT')">
+                    <td>6</td>
+                    <td>RIVERUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+6544.17</td>
+                    <td class="positive">+6544.17</td>
+                </tr>
+                <tr id="trades-RIVERUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">RIVERUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 19:11:16</td>
+                                        <td>2026-01-01 20:01:24</td>
+                                        <td>9.651910</td>
+                                        <td>10.368656</td>
+                                        <td>7.43%</td>
+                                        <td class="positive">+6544.17</td>
+                                        <td>50</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'ETHUSDT')">
+                    <td>7</td>
+                    <td>ETHUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+6327.34</td>
+                    <td class="positive">+6327.34</td>
+                </tr>
+                <tr id="trades-ETHUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">ETHUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 01:31:19</td>
+                                        <td>2026-01-03 01:49:51</td>
+                                        <td>3.000000</td>
+                                        <td>3.000000</td>
+                                        <td>0.00%</td>
+                                        <td class="positive">+6327.34</td>
+                                        <td>18</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'FILUSDT')">
+                    <td>8</td>
+                    <td>FILUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>4</td>
+                    <td>75.0%</td>
+                    <td class="positive">+6285.28</td>
+                    <td class="positive">+1571.32</td>
+                </tr>
+                <tr id="trades-FILUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">FILUSDT 交易详情 (4 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 23:02:25</td>
+                                        <td>2026-01-01 23:47:10</td>
+                                        <td>1.469000</td>
+                                        <td>1.507000</td>
+                                        <td>2.59%</td>
+                                        <td class="positive">+17599.33</td>
+                                        <td>44</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 23:57:41</td>
+                                        <td>2026-01-02 00:17:32</td>
+                                        <td>1.492000</td>
+                                        <td>1.530000</td>
+                                        <td>2.55%</td>
+                                        <td class="positive">+10241.30</td>
+                                        <td>19</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-02 00:22:38</td>
+                                        <td>2026-01-02 00:32:29</td>
+                                        <td>1.496000</td>
+                                        <td>1.515000</td>
+                                        <td>1.27%</td>
+                                        <td class="positive">+3217.06</td>
+                                        <td>9</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-02 11:06:38</td>
+                                        <td>2026-01-02 19:16:28</td>
+                                        <td>1.474000</td>
+                                        <td>1.440000</td>
+                                        <td>-2.31%</td>
+                                        <td class="negative">-24772.41</td>
+                                        <td>489</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'WLDUSDT')">
+                    <td>9</td>
+                    <td>WLDUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+3771.26</td>
+                    <td class="positive">+3771.26</td>
+                </tr>
+                <tr id="trades-WLDUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">WLDUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 10:08:28</td>
+                                        <td>2026-01-04 15:12:43</td>
+                                        <td>0.586377</td>
+                                        <td>0.588557</td>
+                                        <td>0.37%</td>
+                                        <td class="positive">+3771.26</td>
+                                        <td>304</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'PIPPINUSDT')">
+                    <td>10</td>
+                    <td>PIPPINUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+3017.68</td>
+                    <td class="positive">+3017.68</td>
+                </tr>
+                <tr id="trades-PIPPINUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">PIPPINUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 05:35:12</td>
+                                        <td>2026-01-04 05:52:42</td>
+                                        <td>0.450790</td>
+                                        <td>0.453554</td>
+                                        <td>0.61%</td>
+                                        <td class="positive">+3017.68</td>
+                                        <td>17</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'MYXUSDT')">
+                    <td>11</td>
+                    <td>MYXUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>6</td>
+                    <td>50.0%</td>
+                    <td class="positive">+2754.28</td>
+                    <td class="positive">+459.05</td>
+                </tr>
+                <tr id="trades-MYXUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">MYXUSDT 交易详情 (6 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 17:20:34</td>
+                                        <td>2026-01-03 17:30:41</td>
+                                        <td>6.331487</td>
+                                        <td>5.863998</td>
+                                        <td>7.38%</td>
+                                        <td class="positive">+19592.96</td>
+                                        <td>10</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 16:43:08</td>
+                                        <td>2026-01-03 16:56:11</td>
+                                        <td>5.601059</td>
+                                        <td>5.837042</td>
+                                        <td>4.21%</td>
+                                        <td class="positive">+12618.95</td>
+                                        <td>13</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 17:56:04</td>
+                                        <td>2026-01-03 18:50:25</td>
+                                        <td>6.582201</td>
+                                        <td>6.522217</td>
+                                        <td>0.91%</td>
+                                        <td class="positive">+4126.69</td>
+                                        <td>54</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 17:53:05</td>
+                                        <td>2026-01-03 17:55:40</td>
+                                        <td>6.180201</td>
+                                        <td>6.443228</td>
+                                        <td>-4.26%</td>
+                                        <td class="negative">-5929.41</td>
+                                        <td>2</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 17:14:14</td>
+                                        <td>2026-01-03 17:19:59</td>
+                                        <td>6.120967</td>
+                                        <td>6.469215</td>
+                                        <td>-5.69%</td>
+                                        <td class="negative">-10105.82</td>
+                                        <td>5</td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 05:53:30</td>
+                                        <td>2026-01-04 06:10:54</td>
+                                        <td>6.648582</td>
+                                        <td>6.428914</td>
+                                        <td>-3.30%</td>
+                                        <td class="negative">-17549.09</td>
+                                        <td>17</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'BUSDT')">
+                    <td>12</td>
+                    <td>BUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>3</td>
+                    <td>66.7%</td>
+                    <td class="positive">+919.30</td>
+                    <td class="positive">+306.43</td>
+                </tr>
+                <tr id="trades-BUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">BUSDT 交易详情 (3 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 01:44:39</td>
+                                        <td>2026-01-04 01:45:25</td>
+                                        <td>0.209064</td>
+                                        <td>0.218773</td>
+                                        <td>4.64%</td>
+                                        <td class="positive">+11466.06</td>
+                                        <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 11:43:43</td>
+                                        <td>2026-01-03 11:48:36</td>
+                                        <td>0.226138</td>
+                                        <td>0.223159</td>
+                                        <td>1.32%</td>
+                                        <td class="positive">+2750.02</td>
+                                        <td>4</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-03 19:33:26</td>
+                                        <td>2026-01-03 20:10:30</td>
+                                        <td>0.214492</td>
+                                        <td>0.226214</td>
+                                        <td>-5.47%</td>
+                                        <td class="negative">-13296.78</td>
+                                        <td>37</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'TURBOUSDT')">
+                    <td>13</td>
+                    <td>TURBOUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>100.0%</td>
+                    <td class="positive">+45.88</td>
+                    <td class="positive">+45.88</td>
+                </tr>
+                <tr id="trades-TURBOUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">TURBOUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-03 10:44:27</td>
+                                        <td>2026-01-03 10:48:20</td>
+                                        <td>0.002059</td>
+                                        <td>0.002061</td>
+                                        <td>0.10%</td>
+                                        <td class="positive">+45.88</td>
+                                        <td>3</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'PIEVERSEUSDT')">
+                    <td>14</td>
+                    <td>PIEVERSEUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>2</td>
+                    <td>0.0%</td>
+                    <td class="negative">-18.71</td>
+                    <td class="negative">-9.36</td>
+                </tr>
+                <tr id="trades-PIEVERSEUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">PIEVERSEUSDT 交易详情 (2 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 20:51:12</td>
+                                        <td>2026-01-01 20:51:16</td>
+                                        <td>0.494099</td>
+                                        <td>0.493717</td>
+                                        <td>-0.08%</td>
+                                        <td class="negative">-1.93</td>
+                                        <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 20:34:58</td>
+                                        <td>2026-01-01 20:35:02</td>
+                                        <td>0.496477</td>
+                                        <td>0.494809</td>
+                                        <td>-0.34%</td>
+                                        <td class="negative">-16.78</td>
+                                        <td>0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'LIGHTUSDT')">
+                    <td>15</td>
+                    <td>LIGHTUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>3</td>
+                    <td>33.3%</td>
+                    <td class="negative">-2358.65</td>
+                    <td class="negative">-786.22</td>
+                </tr>
+                <tr id="trades-LIGHTUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">LIGHTUSDT 交易详情 (3 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 20:05:36</td>
+                                        <td>2026-01-01 20:06:00</td>
+                                        <td>1.688032</td>
+                                        <td>1.776932</td>
+                                        <td>5.27%</td>
+                                        <td class="positive">+643.46</td>
+                                        <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-01 15:58:33</td>
+                                        <td>2026-01-01 16:50:16</td>
+                                        <td>2.094381</td>
+                                        <td>2.242975</td>
+                                        <td>-7.09%</td>
+                                        <td class="negative">-1158.88</td>
+                                        <td>51</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-01 16:50:50</td>
+                                        <td>2026-01-01 18:10:22</td>
+                                        <td>2.257748</td>
+                                        <td>2.343197</td>
+                                        <td>-3.78%</td>
+                                        <td class="negative">-1843.23</td>
+                                        <td>79</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'USELESSUSDT')">
+                    <td>16</td>
+                    <td>USELESSUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>0.0%</td>
+                    <td class="negative">-3531.42</td>
+                    <td class="negative">-3531.42</td>
+                </tr>
+                <tr id="trades-USELESSUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">USELESSUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-01 21:54:45</td>
+                                        <td>2026-01-01 22:58:44</td>
+                                        <td>0.075969</td>
+                                        <td>0.073015</td>
+                                        <td>-3.89%</td>
+                                        <td class="negative">-3531.42</td>
+                                        <td>63</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'EVAAUSDT')">
+                    <td>17</td>
+                    <td>EVAAUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>0.0%</td>
+                    <td class="negative">-6849.57</td>
+                    <td class="negative">-6849.57</td>
+                </tr>
+                <tr id="trades-EVAAUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">EVAAUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 15:34:30</td>
+                                        <td>2026-01-04 18:20:49</td>
+                                        <td>1.297487</td>
+                                        <td>1.198279</td>
+                                        <td>-7.65%</td>
+                                        <td class="negative">-6849.57</td>
+                                        <td>166</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'A2ZUSDT')">
+                    <td>18</td>
+                    <td>A2ZUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>0.0%</td>
+                    <td class="negative">-13082.16</td>
+                    <td class="negative">-13082.16</td>
+                </tr>
+                <tr id="trades-A2ZUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">A2ZUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="negative">SELL</span></td>
+                                        <td>2026-01-01 22:58:52</td>
+                                        <td>2026-01-01 22:59:37</td>
+                                        <td>0.002360</td>
+                                        <td>0.002869</td>
+                                        <td>-21.57%</td>
+                                        <td class="negative">-13082.16</td>
+                                        <td>0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="symbol-row" onclick="toggleTrades(this, 'CVXUSDT')">
+                    <td>19</td>
+                    <td>CVXUSDT <small style="color: #666;">(点击查看详情)</small></td>
+                    <td>1</td>
+                    <td>0.0%</td>
+                    <td class="negative">-24078.23</td>
+                    <td class="negative">-24078.23</td>
+                </tr>
+                <tr id="trades-CVXUSDT" class="trades-detail" style="display: none;">
+                    <td colspan="6" style="padding: 0;">
+                        <div style="padding: 15px;">
+                            <h4 style="margin-top: 0;">CVXUSDT 交易详情 (1 笔)</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>方向</th>
+                                        <th>开仓时间</th>
+                                        <th>平仓时间</th>
+                                        <th>开仓价</th>
+                                        <th>平仓价</th>
+                                        <th>收益率</th>
+                                        <th>盈亏</th>
+                                        <th>持仓时间(分钟)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><span class="positive">BUY</span></td>
+                                        <td>2026-01-04 06:11:43</td>
+                                        <td>2026-01-04 08:00:53</td>
+                                        <td>2.377324</td>
+                                        <td>2.263624</td>
+                                        <td>-4.78%</td>
+                                        <td class="negative">-24078.23</td>
+                                        <td>109</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>数据文件</h2>
+        <p>详细交易数据已导出为以下格式：</p>
+        <ul>
+            <li>每个品种的详细交易记录 (JSON格式)</li>
+            <li>每个品种的交易统计 (CSV格式)</li>
+            <li>所有品种汇总 (JSON格式)</li>
+        </ul>
+
+        <div class="footer">
+            <p>报告生成系统 | 交易数据分析工具</p>
+            <p>© 2024 交易分析平台</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTrades(row, symbol) {
+            var detailRow = document.getElementById('trades-' + symbol);
+            if (detailRow.style.display === 'none') {
+                detailRow.style.display = 'table-row';
+                row.style.backgroundColor = '#e3f2fd';
+            } else {
+                detailRow.style.display = 'none';
+                row.style.backgroundColor = '';
+            }
+        }
+
+        // 添加键盘支持
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var allDetails = document.querySelectorAll('.trades-detail');
+                allDetails.forEach(function(detail) {
+                    detail.style.display = 'none';
+                });
+                var allRows = document.querySelectorAll('.symbol-row');
+                allRows.forEach(function(row) {
+                    row.style.backgroundColor = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

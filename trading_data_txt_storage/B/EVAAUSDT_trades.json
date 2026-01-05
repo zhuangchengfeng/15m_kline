@@ -1,0 +1,46 @@
+{
+  "symbol": "EVAAUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:36",
+  "summary": {
+    "symbol": "EVAAUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 62.2,
+    "avg_pnl": 62.2,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 62.2,
+    "avg_duration_minutes": 739.0,
+    "best_trade": {
+      "pnl": 62.2,
+      "收益率": 2.8,
+      "date": "2025-12-20 10:20:19"
+    },
+    "worst_trade": {
+      "pnl": 62.2,
+      "收益率": 2.8,
+      "date": "2025-12-20 10:20:19"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "EVAAUSDT",
+      "开仓价格": 0.842238,
+      "盈亏": 62.2,
+      "平仓价格": 0.818637,
+      "开仓时间": "2025-12-20 10:20:19",
+      "平仓时间": "2025-12-20 22:39:35",
+      "持仓时间": 739,
+      "收益率": 2.8021770568414266,
+      "是否盈利": true,
+      "pnl_abs": 62.2
+    }
+  ]
+}

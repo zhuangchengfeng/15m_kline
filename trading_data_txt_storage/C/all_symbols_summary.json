@@ -1,0 +1,306 @@
+{
+  "total_trades": 81,
+  "unique_symbols": 11,
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "RIVERUSDT",
+    "SOLUSDT",
+    "XLMUSDT",
+    "DOGEUSDT",
+    "ADAUSDT",
+    "XRPUSDT",
+    "TRUMPUSDT",
+    "BCHUSDT",
+    "SUIUSDT"
+  ],
+  "last_updated": "2026-01-05 14:27:40",
+  "symbols_summary": [
+    {
+      "symbol": "SOLUSDT",
+      "total_trades": 13,
+      "profitable_trades": 13,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 159192.71,
+      "avg_pnl": 12245.59,
+      "buy_trades": 10,
+      "sell_trades": 3,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 135581.29,
+      "sell_total_pnl": 23611.42,
+      "avg_duration_minutes": 1621.0,
+      "best_trade": {
+        "pnl": 36403.03,
+        "收益率": 5.53,
+        "date": "2025-12-19 04:21:41"
+      },
+      "worst_trade": {
+        "pnl": 3076.44,
+        "收益率": 0.68,
+        "date": "2025-12-16 01:21:06"
+      }
+    },
+    {
+      "symbol": "ETHUSDT",
+      "total_trades": 22,
+      "profitable_trades": 19,
+      "losing_trades": 3,
+      "win_rate": 86.36,
+      "total_pnl": 143819.02,
+      "avg_pnl": 6537.23,
+      "buy_trades": 9,
+      "sell_trades": 13,
+      "buy_win_rate": 77.78,
+      "sell_win_rate": 92.31,
+      "buy_total_pnl": 66964.38,
+      "sell_total_pnl": 76854.64,
+      "avg_duration_minutes": 590.7,
+      "best_trade": {
+        "pnl": 43877.95,
+        "收益率": 0.0,
+        "date": "2025-12-18 03:59:39"
+      },
+      "worst_trade": {
+        "pnl": -9653.7,
+        "收益率": 0.0,
+        "date": "2025-12-11 17:41:48"
+      }
+    },
+    {
+      "symbol": "BTCUSDT",
+      "total_trades": 17,
+      "profitable_trades": 13,
+      "losing_trades": 4,
+      "win_rate": 76.47,
+      "total_pnl": 90687.72,
+      "avg_pnl": 5334.57,
+      "buy_trades": 13,
+      "sell_trades": 4,
+      "buy_win_rate": 76.92,
+      "sell_win_rate": 75.0,
+      "buy_total_pnl": 83811.12,
+      "sell_total_pnl": 6876.6,
+      "avg_duration_minutes": 857.5,
+      "best_trade": {
+        "pnl": 29297.74,
+        "收益率": 3.53,
+        "date": "2025-12-18 03:59:28"
+      },
+      "worst_trade": {
+        "pnl": -18338.62,
+        "收益率": -2.3,
+        "date": "2025-12-19 01:05:53"
+      }
+    },
+    {
+      "symbol": "BCHUSDT",
+      "total_trades": 3,
+      "profitable_trades": 3,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 16010.27,
+      "avg_pnl": 5336.76,
+      "buy_trades": 0,
+      "sell_trades": 3,
+      "buy_win_rate": 0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 0,
+      "sell_total_pnl": 16010.27,
+      "avg_duration_minutes": 492.3,
+      "best_trade": {
+        "pnl": 10920.92,
+        "收益率": 1.83,
+        "date": "2025-12-21 02:38:06"
+      },
+      "worst_trade": {
+        "pnl": 745.83,
+        "收益率": 0.13,
+        "date": "2025-12-22 23:12:42"
+      }
+    },
+    {
+      "symbol": "XRPUSDT",
+      "total_trades": 6,
+      "profitable_trades": 5,
+      "losing_trades": 1,
+      "win_rate": 83.33,
+      "total_pnl": 15528.7,
+      "avg_pnl": 2588.12,
+      "buy_trades": 6,
+      "sell_trades": 0,
+      "buy_win_rate": 83.33,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 15528.7,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 1014.7,
+      "best_trade": {
+        "pnl": 10282.72,
+        "收益率": 1.63,
+        "date": "2025-12-17 07:20:19"
+      },
+      "worst_trade": {
+        "pnl": -5264.76,
+        "收益率": -1.23,
+        "date": "2025-12-10 18:03:44"
+      }
+    },
+    {
+      "symbol": "XLMUSDT",
+      "total_trades": 3,
+      "profitable_trades": 2,
+      "losing_trades": 1,
+      "win_rate": 66.67,
+      "total_pnl": 14465.38,
+      "avg_pnl": 4821.79,
+      "buy_trades": 3,
+      "sell_trades": 0,
+      "buy_win_rate": 66.67,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 14465.38,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 730.0,
+      "best_trade": {
+        "pnl": 12889.44,
+        "收益率": 5.06,
+        "date": "2025-12-09 07:28:42"
+      },
+      "worst_trade": {
+        "pnl": -797.14,
+        "收益率": -0.19,
+        "date": "2026-01-02 06:11:44"
+      }
+    },
+    {
+      "symbol": "ADAUSDT",
+      "total_trades": 4,
+      "profitable_trades": 4,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 10387.74,
+      "avg_pnl": 2596.93,
+      "buy_trades": 2,
+      "sell_trades": 2,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 1801.84,
+      "sell_total_pnl": 8585.9,
+      "avg_duration_minutes": 936.0,
+      "best_trade": {
+        "pnl": 5417.09,
+        "收益率": 1.36,
+        "date": "2025-12-10 06:02:47"
+      },
+      "worst_trade": {
+        "pnl": 476.9,
+        "收益率": 0.12,
+        "date": "2025-12-30 05:00:29"
+      }
+    },
+    {
+      "symbol": "DOGEUSDT",
+      "total_trades": 10,
+      "profitable_trades": 9,
+      "losing_trades": 1,
+      "win_rate": 90.0,
+      "total_pnl": 5154.9,
+      "avg_pnl": 515.49,
+      "buy_trades": 10,
+      "sell_trades": 0,
+      "buy_win_rate": 90.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 5154.9,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 1104.2,
+      "best_trade": {
+        "pnl": 12816.48,
+        "收益率": 2.93,
+        "date": "2025-12-15 23:56:34"
+      },
+      "worst_trade": {
+        "pnl": -32497.82,
+        "收益率": -5.95,
+        "date": "2025-12-19 00:01:56"
+      }
+    },
+    {
+      "symbol": "SUIUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 3945.62,
+      "avg_pnl": 3945.62,
+      "buy_trades": 0,
+      "sell_trades": 1,
+      "buy_win_rate": 0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 0,
+      "sell_total_pnl": 3945.62,
+      "avg_duration_minutes": 27.0,
+      "best_trade": {
+        "pnl": 3945.62,
+        "收益率": 1.2,
+        "date": "2025-12-08 05:54:31"
+      },
+      "worst_trade": {
+        "pnl": 3945.62,
+        "收益率": 1.2,
+        "date": "2025-12-08 05:54:31"
+      }
+    },
+    {
+      "symbol": "RIVERUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 1887.27,
+      "avg_pnl": 1887.27,
+      "buy_trades": 0,
+      "sell_trades": 1,
+      "buy_win_rate": 0,
+      "sell_win_rate": 100.0,
+      "buy_total_pnl": 0,
+      "sell_total_pnl": 1887.27,
+      "avg_duration_minutes": 37.0,
+      "best_trade": {
+        "pnl": 1887.27,
+        "收益率": 1.17,
+        "date": "2026-01-02 23:55:06"
+      },
+      "worst_trade": {
+        "pnl": 1887.27,
+        "收益率": 1.17,
+        "date": "2026-01-02 23:55:06"
+      }
+    },
+    {
+      "symbol": "TRUMPUSDT",
+      "total_trades": 1,
+      "profitable_trades": 1,
+      "losing_trades": 0,
+      "win_rate": 100.0,
+      "total_pnl": 1843.67,
+      "avg_pnl": 1843.67,
+      "buy_trades": 1,
+      "sell_trades": 0,
+      "buy_win_rate": 100.0,
+      "sell_win_rate": 0,
+      "buy_total_pnl": 1843.67,
+      "sell_total_pnl": 0,
+      "avg_duration_minutes": 132.0,
+      "best_trade": {
+        "pnl": 1843.67,
+        "收益率": 1.23,
+        "date": "2025-12-29 10:33:26"
+      },
+      "worst_trade": {
+        "pnl": 1843.67,
+        "收益率": 1.23,
+        "date": "2025-12-29 10:33:26"
+      }
+    }
+  ]
+}

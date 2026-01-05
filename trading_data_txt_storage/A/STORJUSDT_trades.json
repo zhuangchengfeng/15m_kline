@@ -1,0 +1,46 @@
+{
+  "symbol": "STORJUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "STORJUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": 0.0,
+    "avg_pnl": 0.0,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 0.0,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 2.0,
+    "best_trade": {
+      "pnl": 0.0,
+      "收益率": 0.0,
+      "date": "2025-12-28 09:58:08"
+    },
+    "worst_trade": {
+      "pnl": 0.0,
+      "收益率": 0.0,
+      "date": "2025-12-28 09:58:08"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "STORJUSDT",
+      "开仓价格": 0.1513,
+      "盈亏": 0.0,
+      "平仓价格": 0.1513,
+      "开仓时间": "2025-12-28 09:58:08",
+      "平仓时间": "2025-12-28 10:00:53",
+      "持仓时间": 2,
+      "收益率": 0.0,
+      "是否盈利": false,
+      "pnl_abs": 0.0
+    }
+  ]
+}

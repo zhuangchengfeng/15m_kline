@@ -1,0 +1,46 @@
+{
+  "symbol": "A2ZUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:43",
+  "summary": {
+    "symbol": "A2ZUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -13082.16,
+    "avg_pnl": -13082.16,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 0.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": -13082.16,
+    "avg_duration_minutes": 0.0,
+    "best_trade": {
+      "pnl": -13082.16,
+      "收益率": -21.57,
+      "date": "2026-01-01 22:58:52"
+    },
+    "worst_trade": {
+      "pnl": -13082.16,
+      "收益率": -21.57,
+      "date": "2026-01-01 22:58:52"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "A2ZUSDT",
+      "开仓价格": 0.00236,
+      "盈亏": -13082.16,
+      "平仓价格": 0.002869,
+      "开仓时间": "2026-01-01 22:58:52",
+      "平仓时间": "2026-01-01 22:59:37",
+      "持仓时间": 0,
+      "收益率": -21.567796610169488,
+      "是否盈利": false,
+      "pnl_abs": 13082.16
+    }
+  ]
+}

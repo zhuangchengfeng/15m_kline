@@ -1,0 +1,46 @@
+{
+  "symbol": "USUALUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "USUALUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -8.56,
+    "avg_pnl": -8.56,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -8.56,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 4.0,
+    "best_trade": {
+      "pnl": -8.56,
+      "收益率": -1.82,
+      "date": "2025-12-12 23:20:02"
+    },
+    "worst_trade": {
+      "pnl": -8.56,
+      "收益率": -1.82,
+      "date": "2025-12-12 23:20:02"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "USUALUSDT",
+      "开仓价格": 0.02858,
+      "盈亏": -8.56,
+      "平仓价格": 0.02806,
+      "开仓时间": "2025-12-12 23:20:02",
+      "平仓时间": "2025-12-12 23:24:56",
+      "持仓时间": 4,
+      "收益率": -1.8194541637508734,
+      "是否盈利": false,
+      "pnl_abs": 8.56
+    }
+  ]
+}

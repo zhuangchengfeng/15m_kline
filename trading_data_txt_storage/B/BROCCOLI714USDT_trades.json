@@ -1,0 +1,46 @@
+{
+  "symbol": "BROCCOLI714USDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:36",
+  "summary": {
+    "symbol": "BROCCOLI714USDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 158.36,
+    "avg_pnl": 158.36,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 158.36,
+    "avg_duration_minutes": 1378.0,
+    "best_trade": {
+      "pnl": 158.36,
+      "收益率": 4.76,
+      "date": "2025-12-20 22:46:24"
+    },
+    "worst_trade": {
+      "pnl": 158.36,
+      "收益率": 4.76,
+      "date": "2025-12-20 22:46:24"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "BROCCOLI714USDT",
+      "开仓价格": 0.012003,
+      "盈亏": 158.36,
+      "平仓价格": 0.011432,
+      "开仓时间": "2025-12-20 22:46:24",
+      "平仓时间": "2025-12-21 21:44:43",
+      "持仓时间": 1378,
+      "收益率": 4.757144047321506,
+      "是否盈利": true,
+      "pnl_abs": 158.36
+    }
+  ]
+}

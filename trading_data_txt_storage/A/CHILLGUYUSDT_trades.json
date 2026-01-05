@@ -1,0 +1,46 @@
+{
+  "symbol": "CHILLGUYUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "CHILLGUYUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -9.02,
+    "avg_pnl": -9.02,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 0.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": -9.02,
+    "avg_duration_minutes": 17.0,
+    "best_trade": {
+      "pnl": -9.02,
+      "收益率": -1.81,
+      "date": "2026-01-02 22:31:17"
+    },
+    "worst_trade": {
+      "pnl": -9.02,
+      "收益率": -1.81,
+      "date": "2026-01-02 22:31:17"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "CHILLGUYUSDT",
+      "开仓价格": 0.02034,
+      "盈亏": -9.02,
+      "平仓价格": 0.020708,
+      "开仓时间": "2026-01-02 22:31:17",
+      "平仓时间": "2026-01-02 22:48:21",
+      "持仓时间": 17,
+      "收益率": -1.809242871189775,
+      "是否盈利": false,
+      "pnl_abs": 9.02
+    }
+  ]
+}

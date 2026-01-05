@@ -1,0 +1,46 @@
+{
+  "symbol": "1000FLOKIUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "1000FLOKIUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -3.22,
+    "avg_pnl": -3.22,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -3.22,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 182.0,
+    "best_trade": {
+      "pnl": -3.22,
+      "收益率": -1.08,
+      "date": "2026-01-03 10:37:43"
+    },
+    "worst_trade": {
+      "pnl": -3.22,
+      "收益率": -1.08,
+      "date": "2026-01-03 10:37:43"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "1000FLOKIUSDT",
+      "开仓价格": 0.049159,
+      "盈亏": -3.22,
+      "平仓价格": 0.04863,
+      "开仓时间": "2026-01-03 10:37:43",
+      "平仓时间": "2026-01-03 13:39:58",
+      "持仓时间": 182,
+      "收益率": -1.0761000020342188,
+      "是否盈利": false,
+      "pnl_abs": 3.22
+    }
+  ]
+}

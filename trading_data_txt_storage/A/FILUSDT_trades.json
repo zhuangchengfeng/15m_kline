@@ -1,0 +1,46 @@
+{
+  "symbol": "FILUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "FILUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 9.78,
+    "avg_pnl": 9.78,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 9.78,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 329.0,
+    "best_trade": {
+      "pnl": 9.78,
+      "收益率": 3.26,
+      "date": "2025-12-28 00:34:49"
+    },
+    "worst_trade": {
+      "pnl": 9.78,
+      "收益率": 3.26,
+      "date": "2025-12-28 00:34:49"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "FILUSDT",
+      "开仓价格": 1.256,
+      "盈亏": 9.78,
+      "平仓价格": 1.297,
+      "开仓时间": "2025-12-28 00:34:49",
+      "平仓时间": "2025-12-28 06:04:03",
+      "持仓时间": 329,
+      "收益率": 3.2643312101910764,
+      "是否盈利": true,
+      "pnl_abs": 9.78
+    }
+  ]
+}

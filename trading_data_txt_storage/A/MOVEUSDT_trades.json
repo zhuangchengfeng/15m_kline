@@ -1,0 +1,46 @@
+{
+  "symbol": "MOVEUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "MOVEUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 0.31,
+    "avg_pnl": 0.31,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 0.31,
+    "avg_duration_minutes": 2.0,
+    "best_trade": {
+      "pnl": 0.31,
+      "收益率": 0.31,
+      "date": "2025-12-24 16:38:16"
+    },
+    "worst_trade": {
+      "pnl": 0.31,
+      "收益率": 0.31,
+      "date": "2025-12-24 16:38:16"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "MOVEUSDT",
+      "开仓价格": 0.03516,
+      "盈亏": 0.31,
+      "平仓价格": 0.03505,
+      "开仓时间": "2025-12-24 16:38:16",
+      "平仓时间": "2025-12-24 16:40:43",
+      "持仓时间": 2,
+      "收益率": 0.31285551763367175,
+      "是否盈利": true,
+      "pnl_abs": 0.31
+    }
+  ]
+}

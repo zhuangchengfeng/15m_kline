@@ -1,0 +1,46 @@
+{
+  "symbol": "VINEUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "VINEUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 0.88,
+    "avg_pnl": 0.88,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 0.88,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 99.0,
+    "best_trade": {
+      "pnl": 0.88,
+      "收益率": 0.44,
+      "date": "2025-12-17 21:50:48"
+    },
+    "worst_trade": {
+      "pnl": 0.88,
+      "收益率": 0.44,
+      "date": "2025-12-17 21:50:48"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "VINEUSDT",
+      "开仓价格": 0.02968,
+      "盈亏": 0.88,
+      "平仓价格": 0.029811,
+      "开仓时间": "2025-12-17 21:50:48",
+      "平仓时间": "2025-12-17 23:30:05",
+      "持仓时间": 99,
+      "收益率": 0.44137466307277345,
+      "是否盈利": true,
+      "pnl_abs": 0.88
+    }
+  ]
+}

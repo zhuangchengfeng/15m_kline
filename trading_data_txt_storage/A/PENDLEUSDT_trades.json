@@ -1,0 +1,46 @@
+{
+  "symbol": "PENDLEUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "PENDLEUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 3.0,
+    "avg_pnl": 3.0,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 3.0,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 77.0,
+    "best_trade": {
+      "pnl": 3.0,
+      "收益率": 1.01,
+      "date": "2026-01-03 10:46:16"
+    },
+    "worst_trade": {
+      "pnl": 3.0,
+      "收益率": 1.01,
+      "date": "2026-01-03 10:46:16"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "PENDLEUSDT",
+      "开仓价格": 2.231239,
+      "盈亏": 3.0,
+      "平仓价格": 2.2537,
+      "开仓时间": "2026-01-03 10:46:16",
+      "平仓时间": "2026-01-03 12:04:08",
+      "持仓时间": 77,
+      "收益率": 1.0066604249925644,
+      "是否盈利": true,
+      "pnl_abs": 3.0
+    }
+  ]
+}

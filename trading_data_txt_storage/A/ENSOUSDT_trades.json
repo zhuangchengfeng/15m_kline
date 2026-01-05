@@ -1,0 +1,46 @@
+{
+  "symbol": "ENSOUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "ENSOUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -0.86,
+    "avg_pnl": -0.86,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 0.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": -0.86,
+    "avg_duration_minutes": 2133.0,
+    "best_trade": {
+      "pnl": -0.86,
+      "收益率": -2.49,
+      "date": "2026-01-01 01:16:03"
+    },
+    "worst_trade": {
+      "pnl": -0.86,
+      "收益率": -2.49,
+      "date": "2026-01-01 01:16:03"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "ENSOUSDT",
+      "开仓价格": 0.6438,
+      "盈亏": -0.86,
+      "平仓价格": 0.6598,
+      "开仓时间": "2026-01-01 01:16:03",
+      "平仓时间": "2026-01-02 12:49:03",
+      "持仓时间": 2133,
+      "收益率": -2.4852438645542114,
+      "是否盈利": false,
+      "pnl_abs": 0.86
+    }
+  ]
+}

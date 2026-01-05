@@ -1,0 +1,46 @@
+{
+  "symbol": "HMSTRUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:36",
+  "summary": {
+    "symbol": "HMSTRUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 24.02,
+    "avg_pnl": 24.02,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 24.02,
+    "avg_duration_minutes": 266.0,
+    "best_trade": {
+      "pnl": 24.02,
+      "收益率": 0.44,
+      "date": "2025-12-19 21:08:00"
+    },
+    "worst_trade": {
+      "pnl": 24.02,
+      "收益率": 0.44,
+      "date": "2025-12-19 21:08:00"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "HMSTRUSDT",
+      "开仓价格": 0.000226,
+      "盈亏": 24.02,
+      "平仓价格": 0.000225,
+      "开仓时间": "2025-12-19 21:08:00",
+      "平仓时间": "2025-12-20 01:34:36",
+      "持仓时间": 266,
+      "收益率": 0.4424778761061935,
+      "是否盈利": true,
+      "pnl_abs": 24.02
+    }
+  ]
+}

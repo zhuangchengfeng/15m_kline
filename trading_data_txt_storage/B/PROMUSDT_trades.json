@@ -1,0 +1,46 @@
+{
+  "symbol": "PROMUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:36",
+  "summary": {
+    "symbol": "PROMUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 81.52,
+    "avg_pnl": 81.52,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 81.52,
+    "avg_duration_minutes": 2114.0,
+    "best_trade": {
+      "pnl": 81.52,
+      "收益率": 2.45,
+      "date": "2025-12-20 22:52:13"
+    },
+    "worst_trade": {
+      "pnl": 81.52,
+      "收益率": 2.45,
+      "date": "2025-12-20 22:52:13"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "PROMUSDT",
+      "开仓价格": 7.36205,
+      "盈亏": 81.52,
+      "平仓价格": 7.181639,
+      "开仓时间": "2025-12-20 22:52:13",
+      "平仓时间": "2025-12-22 10:06:33",
+      "持仓时间": 2114,
+      "收益率": 2.4505538538858107,
+      "是否盈利": true,
+      "pnl_abs": 81.52
+    }
+  ]
+}

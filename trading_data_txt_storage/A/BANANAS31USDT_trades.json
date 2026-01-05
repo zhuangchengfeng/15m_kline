@@ -1,0 +1,46 @@
+{
+  "symbol": "BANANAS31USDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "BANANAS31USDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 3.67,
+    "avg_pnl": 3.67,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 3.67,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 23.0,
+    "best_trade": {
+      "pnl": 3.67,
+      "收益率": 1.84,
+      "date": "2026-01-01 18:06:44"
+    },
+    "worst_trade": {
+      "pnl": 3.67,
+      "收益率": 1.84,
+      "date": "2026-01-01 18:06:44"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "BANANAS31USDT",
+      "开仓价格": 0.003908,
+      "盈亏": 3.67,
+      "平仓价格": 0.00398,
+      "开仓时间": "2026-01-01 18:06:44",
+      "平仓时间": "2026-01-01 18:30:01",
+      "持仓时间": 23,
+      "收益率": 1.8423746161719552,
+      "是否盈利": true,
+      "pnl_abs": 3.67
+    }
+  ]
+}

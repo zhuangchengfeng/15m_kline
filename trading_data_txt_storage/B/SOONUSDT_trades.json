@@ -1,0 +1,46 @@
+{
+  "symbol": "SOONUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:36",
+  "summary": {
+    "symbol": "SOONUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -13.38,
+    "avg_pnl": -13.38,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 0.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": -13.38,
+    "avg_duration_minutes": 1.0,
+    "best_trade": {
+      "pnl": -13.38,
+      "收益率": -0.24,
+      "date": "2025-12-20 01:32:31"
+    },
+    "worst_trade": {
+      "pnl": -13.38,
+      "收益率": -0.24,
+      "date": "2025-12-20 01:32:31"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "SOONUSDT",
+      "开仓价格": 0.397814,
+      "盈亏": -13.38,
+      "平仓价格": 0.398775,
+      "开仓时间": "2025-12-20 01:32:31",
+      "平仓时间": "2025-12-20 01:33:47",
+      "持仓时间": 1,
+      "收益率": -0.2415701810393776,
+      "是否盈利": false,
+      "pnl_abs": 13.38
+    }
+  ]
+}

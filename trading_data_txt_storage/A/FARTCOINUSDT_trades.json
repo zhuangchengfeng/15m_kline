@@ -1,0 +1,46 @@
+{
+  "symbol": "FARTCOINUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "FARTCOINUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -2.26,
+    "avg_pnl": -2.26,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -2.26,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 94.0,
+    "best_trade": {
+      "pnl": -2.26,
+      "收益率": -2.26,
+      "date": "2026-01-03 12:05:50"
+    },
+    "worst_trade": {
+      "pnl": -2.26,
+      "收益率": -2.26,
+      "date": "2026-01-03 12:05:50"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "FARTCOINUSDT",
+      "开仓价格": 0.345,
+      "盈亏": -2.26,
+      "平仓价格": 0.3372,
+      "开仓时间": "2026-01-03 12:05:50",
+      "平仓时间": "2026-01-03 13:39:56",
+      "持仓时间": 94,
+      "收益率": -2.2608695652173836,
+      "是否盈利": false,
+      "pnl_abs": 2.26
+    }
+  ]
+}

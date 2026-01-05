@@ -1,0 +1,46 @@
+{
+  "symbol": "XMRUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "XMRUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -7.85,
+    "avg_pnl": -7.85,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -7.85,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 64.0,
+    "best_trade": {
+      "pnl": -7.85,
+      "收益率": -0.79,
+      "date": "2026-01-03 16:03:43"
+    },
+    "worst_trade": {
+      "pnl": -7.85,
+      "收益率": -0.79,
+      "date": "2026-01-03 16:03:43"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "XMRUSDT",
+      "开仓价格": 429.54,
+      "盈亏": -7.85,
+      "平仓价格": 426.16,
+      "开仓时间": "2026-01-03 16:03:43",
+      "平仓时间": "2026-01-03 17:07:58",
+      "持仓时间": 64,
+      "收益率": -0.7868882991106755,
+      "是否盈利": false,
+      "pnl_abs": 7.85
+    }
+  ]
+}

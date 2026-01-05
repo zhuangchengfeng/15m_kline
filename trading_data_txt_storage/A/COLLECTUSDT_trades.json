@@ -1,0 +1,46 @@
+{
+  "symbol": "COLLECTUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "COLLECTUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 4.69,
+    "avg_pnl": 4.69,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 4.69,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 64.0,
+    "best_trade": {
+      "pnl": 4.69,
+      "收益率": 0.89,
+      "date": "2026-01-01 17:33:19"
+    },
+    "worst_trade": {
+      "pnl": 4.69,
+      "收益率": 0.89,
+      "date": "2026-01-01 17:33:19"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "COLLECTUSDT",
+      "开仓价格": 0.081052,
+      "盈亏": 4.69,
+      "平仓价格": 0.081771,
+      "开仓时间": "2026-01-01 17:33:19",
+      "平仓时间": "2026-01-01 18:38:16",
+      "持仓时间": 64,
+      "收益率": 0.8870848344272781,
+      "是否盈利": true,
+      "pnl_abs": 4.69
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "symbol": "CVCUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:36",
+  "summary": {
+    "symbol": "CVCUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 2.07,
+    "avg_pnl": 2.07,
+    "buy_trades": 0,
+    "sell_trades": 1,
+    "buy_win_rate": 0,
+    "sell_win_rate": 100.0,
+    "buy_total_pnl": 0,
+    "sell_total_pnl": 2.07,
+    "avg_duration_minutes": 0.0,
+    "best_trade": {
+      "pnl": 2.07,
+      "收益率": 0.06,
+      "date": "2025-12-29 22:59:05"
+    },
+    "worst_trade": {
+      "pnl": 2.07,
+      "收益率": 0.06,
+      "date": "2025-12-29 22:59:05"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "SELL",
+      "品种": "CVCUSDT",
+      "开仓价格": 0.042905,
+      "盈亏": 2.07,
+      "平仓价格": 0.042878,
+      "开仓时间": "2025-12-29 22:59:05",
+      "平仓时间": "2025-12-29 22:59:41",
+      "持仓时间": 0,
+      "收益率": 0.06292972846987355,
+      "是否盈利": true,
+      "pnl_abs": 2.07
+    }
+  ]
+}

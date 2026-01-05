@@ -1,0 +1,46 @@
+{
+  "symbol": "STRKUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "STRKUSDT",
+    "total_trades": 1,
+    "profitable_trades": 1,
+    "losing_trades": 0,
+    "win_rate": 100.0,
+    "total_pnl": 0.75,
+    "avg_pnl": 0.75,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 100.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": 0.75,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 162.0,
+    "best_trade": {
+      "pnl": 0.75,
+      "收益率": 0.75,
+      "date": "2026-01-01 18:34:12"
+    },
+    "worst_trade": {
+      "pnl": 0.75,
+      "收益率": 0.75,
+      "date": "2026-01-01 18:34:12"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "STRKUSDT",
+      "开仓价格": 0.0795,
+      "盈亏": 0.75,
+      "平仓价格": 0.0801,
+      "开仓时间": "2026-01-01 18:34:12",
+      "平仓时间": "2026-01-01 21:16:44",
+      "持仓时间": 162,
+      "收益率": 0.7547169811320796,
+      "是否盈利": true,
+      "pnl_abs": 0.75
+    }
+  ]
+}

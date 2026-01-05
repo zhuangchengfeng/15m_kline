@@ -1,0 +1,59 @@
+{
+  "symbol": "PIEVERSEUSDT",
+  "total_records": 2,
+  "last_updated": "2026-01-05 14:27:43",
+  "summary": {
+    "symbol": "PIEVERSEUSDT",
+    "total_trades": 2,
+    "profitable_trades": 0,
+    "losing_trades": 2,
+    "win_rate": 0.0,
+    "total_pnl": -18.71,
+    "avg_pnl": -9.36,
+    "buy_trades": 2,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -18.71,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 0.0,
+    "best_trade": {
+      "pnl": -1.93,
+      "收益率": -0.08,
+      "date": "2026-01-01 20:51:12"
+    },
+    "worst_trade": {
+      "pnl": -16.78,
+      "收益率": -0.34,
+      "date": "2026-01-01 20:34:58"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "PIEVERSEUSDT",
+      "开仓价格": 0.496477,
+      "盈亏": -16.78,
+      "平仓价格": 0.494809,
+      "开仓时间": "2026-01-01 20:34:58",
+      "平仓时间": "2026-01-01 20:35:02",
+      "持仓时间": 0,
+      "收益率": -0.3359672250678285,
+      "是否盈利": false,
+      "pnl_abs": 16.78
+    },
+    {
+      "开仓方向": "BUY",
+      "品种": "PIEVERSEUSDT",
+      "开仓价格": 0.494099,
+      "盈亏": -1.93,
+      "平仓价格": 0.493717,
+      "开仓时间": "2026-01-01 20:51:12",
+      "平仓时间": "2026-01-01 20:51:16",
+      "持仓时间": 0,
+      "收益率": -0.07731244143380041,
+      "是否盈利": false,
+      "pnl_abs": 1.93
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "symbol": "KERNELUSDT",
+  "total_records": 1,
+  "last_updated": "2026-01-05 14:27:34",
+  "summary": {
+    "symbol": "KERNELUSDT",
+    "total_trades": 1,
+    "profitable_trades": 0,
+    "losing_trades": 1,
+    "win_rate": 0.0,
+    "total_pnl": -3.03,
+    "avg_pnl": -3.03,
+    "buy_trades": 1,
+    "sell_trades": 0,
+    "buy_win_rate": 0.0,
+    "sell_win_rate": 0,
+    "buy_total_pnl": -3.03,
+    "sell_total_pnl": 0,
+    "avg_duration_minutes": 92.0,
+    "best_trade": {
+      "pnl": -3.03,
+      "收益率": -1.52,
+      "date": "2025-12-21 13:19:09"
+    },
+    "worst_trade": {
+      "pnl": -3.03,
+      "收益率": -1.52,
+      "date": "2025-12-21 13:19:09"
+    }
+  },
+  "trades": [
+    {
+      "开仓方向": "BUY",
+      "品种": "KERNELUSDT",
+      "开仓价格": 0.06666,
+      "盈亏": -3.03,
+      "平仓价格": 0.06565,
+      "开仓时间": "2025-12-21 13:19:09",
+      "平仓时间": "2025-12-21 14:51:15",
+      "持仓时间": 92,
+      "收益率": -1.5151515151515107,
+      "是否盈利": false,
+      "pnl_abs": 3.03
+    }
+  ]
+}
