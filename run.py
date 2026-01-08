@@ -2,7 +2,7 @@ import asyncio
 from typing import List, Optional, Dict, Any
 import logging
 import time
-from datetime import datetime
+import datetime
 import queue
 import concurrent.futures
 from collector import BinanceKlineCollector
@@ -38,7 +38,7 @@ class TradingSignalBot:
         self.alert_manager = AlertManager()
         self.kline_collector = BinanceKlineCollector(config.PROXY)
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
-        self.mouse_operator = MouseOperator(config.CLICK_COORDINATES)  # 新增
+        self.mouse_operator = MouseOperator()  # 新增
         self.ema_atr_operator = EmaAtrManager()
 
         self.running = False
@@ -89,13 +89,14 @@ class TradingSignalBot:
 
     async def process_cycle(self):
         """处理每个周期"""
-        now = datetime.now()
+        now = datetime.datetime.now()
 
         # 处理键盘事件
         await self.handle_keyboard_events()
 
         # 检查是否需要扫描
-        if self.should_scan(now):
+        check = self.should_scan(now)
+        if check:
             await self.perform_scan(now)
             url = 'https://fapi.binance.com/fapi/v1/ping'
             res = requests.get(url=url, proxies=Config.PROXY_D)
@@ -115,16 +116,25 @@ class TradingSignalBot:
                 return False
         else:
             # 检查时间间隔
-            if now.minute not in self.config.SCAN_INTERVALS:
-                return False
+            # if now.minute not in self.config.SCAN_INTERVALS:
+            #     return False
+            if self.config.SCAN_INTERVALS[0] is not None:
+                if now.hour not in self.config.SCAN_INTERVALS[0]:
+                    return False
+                else:
+                    if now.minute not in self.config.SCAN_INTERVALS[1]:
+                        return False
+            else:
+                if now.minute not in self.config.SCAN_INTERVALS[1]:
+                    return False
 
             # 检查是否正在扫描中
             if self.is_scanning:
                 return False
 
             # 避免重复扫描（按分钟，不是按秒）
-            if self.last_scan_time and now.minute == self.last_scan_time.minute:
-                return False
+            # if self.last_scan_time and now.minute == self.last_scan_time.minute:
+            #     return False
 
             # 避免重复扫描
             if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 57:
@@ -232,7 +242,7 @@ class TradingSignalBot:
                 timestamp_seconds = timestamp_ms / 1000.0
 
                 # 创建UTC时间
-                utc_time = datetime.fromtimestamp(timestamp_seconds, tz=self.config.UTC_TZ)
+                utc_time = datetime.datetime.fromtimestamp(timestamp_seconds, tz=self.config.UTC_TZ)
 
                 # 转换为北京时间
                 beijing_time = utc_time.astimezone(self.config.BEIJING_TZ)
@@ -269,7 +279,7 @@ class TradingSignalBot:
 
                 # 如果时间转换失败，尝试使用当前时间作为备选
                 try:
-                    backup_time_str = datetime.now(self.config.BEIJING_TZ).strftime("%Y/%m/%d %H:%M:%S")
+                    backup_time_str = datetime.datetime.now(self.config.BEIJING_TZ).strftime("%Y/%m/%d %H:%M:%S")
                     logger.warning(f"使用备选时间: {backup_time_str}")
 
                     # 使用当前时间重新尝试记录
@@ -390,7 +400,6 @@ class TradingSignalBot:
             next_scan = self.calculate_next_scan_time(now)
             time_until = next_scan - now
             total_seconds = int(time_until.total_seconds())
-
             if total_seconds > 0:
                 mins, secs = divmod(total_seconds, 60)
                 countdown = f"{mins:02d}:{secs:02d}"
@@ -402,7 +411,6 @@ class TradingSignalBot:
             next_scan = self.calculate_next_scan_time(now)
             time_until = next_scan - now
             total_seconds = int(time_until.total_seconds())
-
             if total_seconds > 0:
                 mins, secs = divmod(total_seconds, 60)
                 countdown = f"{mins:02d}:{secs:02d}"
@@ -418,28 +426,64 @@ class TradingSignalBot:
     def calculate_next_scan_time(self, now: datetime) -> datetime:
         """计算下次扫描时间"""
         current_minute = now.minute
+        current_sec = now.second
+        if self.config.SCAN_INTERVALS_DEBUG:
+            if current_sec < self.config.SC:
+                r_m=current_minute
+            else:
+                r_m=current_minute + 1
+            next_time = now.replace(
+                minute=r_m,
+                second=self.config.SC,
+                microsecond=0
+            )
+            return next_time
+        if self.config.SCAN_INTERVALS[0] is None:
+            # 找到下一个扫描时间点
+            for interval in sorted(self.config.SCAN_INTERVALS[1]):
+                if interval > current_minute:
+                    next_time = now.replace(
+                        minute=interval,
+                        second=0,
+                        microsecond=0
+                    )
+                    return next_time
 
-        # 找到下一个扫描时间点
-        for interval in sorted(self.config.SCAN_INTERVALS):
-            if interval > current_minute:
-                next_time = now.replace(
-                    minute=interval,
-                    second=0,
-                    microsecond=0
-                )
-                return next_time
+            # 如果当前时间已过所有扫描点，使用下一个小时的第一个扫描点
+            # 这里也可以简化：直接加1小时，然后设置分钟
+            next_hour_time = now + datetime.timedelta(hours=1)
+            next_time = next_hour_time.replace(
+                minute=min(self.config.SCAN_INTERVALS[1]),
+                second=0,
+                microsecond=0
+            )
+            return next_time
+        else:  # 情况2：有小时限制的扫描
+            current_hour = now.hour
+            hour_points = sorted(self.config.SCAN_INTERVALS[0])
+            minute_points = self.config.SCAN_INTERVALS[1]
 
-        # 如果当前时间已过所有扫描点，使用下一个小时的第一个扫描点
-        next_hour = (now.hour + 1) % 24
-        next_time = now.replace(
-            hour=next_hour,
-            minute=min(self.config.SCAN_INTERVALS),
-            second=0,
-            microsecond=0
-        )
-        return next_time
+            # 在当前天内查找
+            for hour in hour_points:
+                if hour > current_hour:
+                    next_time = now.replace(
+                        hour=hour,
+                        minute=min(minute_points),
+                        second=0,
+                        microsecond=0
+                    )
+                    return next_time
 
-
+            # 如果当前时间已过所有扫描点，使用第二天的第一个扫描点
+            # 创建一个明天的日期对象
+            tomorrow = now + datetime.timedelta(days=1)
+            next_time = tomorrow.replace(
+                hour=min(hour_points),
+                minute=min(minute_points),
+                second=0,
+                microsecond=0
+            )
+            return next_time
 # 主函数
 async def main():
     config = Config()

@@ -155,7 +155,7 @@ class EmaAtrManager:
         if "error" in result:
             print(f"  错误: {result['error']}")
             return False
-        if Config.SCAN_INTERVALS_DEBUG:
+        if Config.EMA_ATR_INFO:
             print(f"{result['symbol']}  {interval_check}:")
             print(f"  当前价格: ${result['current_price']:.2f}")
             print(f"  EMA60: ${result['ema60']:.2f}" if result['ema60'] else "  EMA60: 无法计算")
@@ -164,8 +164,8 @@ class EmaAtrManager:
         if result['ema60']:
             diff_percent = ((result['current_price'] - result['ema60']) / result['ema60']) * 100
             position = "\033[92m高于\033[0m" if diff_percent > 0 else "\033[91m低于\033[0m"
-            print(f"{symbol} {interval_check}:  价格{position}EMA60: {abs(diff_percent):.2f}%")
-            if abs(result['latest_price'] - result['ema60']) < 3*result['atr'] and result['latest_price'] > result['ema60']:
+            # print(f"{symbol} {interval_check}:  价格{position}EMA60: {abs(diff_percent):.2f}%")
+            if abs(result['latest_price'] - result['ema60']) < 2 * result['atr']:
 
                 return True
             else:

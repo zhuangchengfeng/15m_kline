@@ -12,6 +12,63 @@ logger = logging.getLogger(__name__)
 BEIJING_TZ = timezone(timedelta(hours=8))
 UTC_TZ = timezone.utc
 
+import pandas as pd
+import numpy as np
+
+
+def detect_rg_pattern_signals(df, close_col='close', open_col='open', low_col='low'):
+    """
+    检测RED_GREEN_K线组合信号
+
+    规则：
+    1. 寻找阴阳K线组合（当前为阴线，前一根为阳线）
+    2. 当发现一个阴阳组合时，向前查找最近的一个阴阳组合
+    3. 如果之前的阴线最低点 > 当前阴线最低点，产生信号
+
+    参数：
+    df: DataFrame，包含OHLC数据
+    close_col: 收盘价列名
+    open_col: 开盘价列名
+    low_col: 最低价列名
+
+    返回：
+    signals: 包含信号的DataFrame
+    """
+
+    # 复制数据避免修改原数据
+    df = df.copy()
+
+    # 确保数据按时间升序排列（旧数据在前，新数据在后）
+    df = df.sort_values('open_time').reset_index(drop=True)
+
+    # 判断K线阴阳（True为阳线，False为阴线）
+    df['is_yang'] = df[close_col] > df[open_col]
+
+    # 找出阴阳组合：
+    df['is_yin_yang_pattern'] = (df['is_yang']) & (~df['is_yang']).shift(1)
+    # 找出所有阴阳组合的位置
+    pattern_indices = df[df['is_yin_yang_pattern']].index.tolist()
+    # 初始化信号列
+    df['signal'] = 0  # 0表示无信号，1表示有信号
+    df['prev_pattern_low'] = np.nan  # 记录前一个模式的最低点
+    df['current_pattern_low'] = np.nan  # 记录当前模式的最低点
+
+    if len(pattern_indices) >= 2:
+        # 只取最后两个索引
+        prev_idx = pattern_indices[-2]-1  # 倒数第二个模式
+        current_idx = pattern_indices[-1]-1  # 最后一个模式（最新的）
+
+        prev_low = df.loc[prev_idx, low_col]
+        current_low = df.loc[current_idx, low_col]
+        # 判断条件
+        if prev_low < current_low:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
 
 
 
@@ -20,17 +77,15 @@ def detect_signal(interval_check, result: dict) -> bool:
     检测形态并可选地记录信号
 
     Args:
-        kline_data: K线数据
+        interval_check:'1h' '15m' '1d' '4h'
+        result: K线数据 DICT
         symbol: 交易对
-        record_signal: 是否记录信号
-        check_duplicate: 是否检查重复
-
     Returns:
         bool: 是否有信号
     """
     kline_data = result['data']
     kline_data:pd.DataFrame
-    if kline_data is None or len(kline_data) < Config.KLINE_LIMIT:
+    if kline_data is None or len(kline_data) < Config.KLINE_LIMIT and interval_check != '1d':
         return False
     current = kline_data.iloc[-1]
     prev = kline_data.iloc[-3]  # 前一根K线
@@ -38,7 +93,9 @@ def detect_signal(interval_check, result: dict) -> bool:
     extra_prev = kline_data.iloc[-4]
     extra_prev_2 = kline_data.iloc[-5]
 
+    r_g_p = detect_rg_pattern_signals(kline_data)
     atrdiffemacheck = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check)
+
     has_signal = False
 
     def price_power(x):
@@ -47,21 +104,19 @@ def detect_signal(interval_check, result: dict) -> bool:
     def volume_power(x):
         return latest['volume'] >= (prev['volume'] * x)
 
-    if interval_check == '15m':
-        c = (latest['close'] > latest['open']) and (prev['close'] < prev['open']) and price_power(0.618)
-        if c and atrdiffemacheck:
-            has_signal = True
+    # if interval_check == '15m':
+    #     c = (latest['close'] > latest['open']) and (prev['close'] < prev['open']) and price_power(0.618)
+    #     if c and atrdiffemacheck:
+    #         has_signal = True
 
     if interval_check == '1h':
-        c = (latest['low'] > prev['low']) and (latest['high'] > prev['high']) and (latest['close'] > latest['open'])
+        # c = (latest['low'] > prev['low']) and (latest['high'] > prev['high']) and (latest['close'] > latest['open'])
         # cc = (current['low'] < latest['low']) and (current['low'] < prev['low']) and (current['low'] < extra_prev['low'])
         # d = (latest['high']-latest['close']) < (latest['close']-latest['low']) * 1
-        e = (latest['low'] <= extra_prev['high'])
+        # e = (latest['low'] <= extra_prev['high'])
         f = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-        if e and c and f and atrdiffemacheck:
+        if r_g_p and atrdiffemacheck and price_power(1.3) and f:
             has_signal = True
-        # if (c or cc) and d and e:
-        #     has_signal = True
 
     return has_signal
 
