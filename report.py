@@ -689,5 +689,5 @@ if __name__ == '__main__':
     logger.info("=" * 60)
 
     logger.warning("3. 更新并汇报指定json:")
-    data = analyze_gap_sorted_signals(json_name='2026-01-07.json')
+    data = analyze_gap_sorted_signals(json_name='2026-01-16.json')
     logger.info(data)

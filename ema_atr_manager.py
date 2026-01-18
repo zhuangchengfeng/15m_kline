@@ -165,7 +165,8 @@ class EmaAtrManager:
             diff_percent = ((result['current_price'] - result['ema60']) / result['ema60']) * 100
             position = "\033[92m高于\033[0m" if diff_percent > 0 else "\033[91m低于\033[0m"
             # print(f"{symbol} {interval_check}:  价格{position}EMA60: {abs(diff_percent):.2f}%")
-            if abs(result['latest_price'] - result['ema60']) < 2 * result['atr']:
+            # if abs(result['latest_price'] - result['ema60']) < 2 * result['atr']:
+            if result['latest_price'] >= result['ema60']:
 
                 return True
             else:

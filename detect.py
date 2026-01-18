@@ -1,5 +1,4 @@
 # detect.py
-import pandas as pd
 import logging
 from datetime import datetime, timezone, timedelta
 from config import Config
@@ -72,7 +71,7 @@ def detect_rg_pattern_signals(df, close_col='close', open_col='open', low_col='l
 
 
 
-def detect_signal(interval_check, result: dict) -> bool:
+def detect_signal(interval_check, result: dict) -> tuple:
     """
     检测形态并可选地记录信号
 
@@ -81,22 +80,22 @@ def detect_signal(interval_check, result: dict) -> bool:
         result: K线数据 DICT
         symbol: 交易对
     Returns:
-        bool: 是否有信号
+        tuple: 是否有信号,语言文本
     """
     kline_data = result['data']
     kline_data:pd.DataFrame
     if kline_data is None or len(kline_data) < Config.KLINE_LIMIT and interval_check != '1d':
-        return False
-    current = kline_data.iloc[-1]
+        return (False,None)
+    # current = kline_data.iloc[-1]
     prev = kline_data.iloc[-3]  # 前一根K线
     latest = kline_data.iloc[-2]  # 最新K线
-    extra_prev = kline_data.iloc[-4]
-    extra_prev_2 = kline_data.iloc[-5]
+    # extra_prev = kline_data.iloc[-4]
+    # extra_prev_2 = kline_data.iloc[-5]
 
-    r_g_p = detect_rg_pattern_signals(kline_data)
-    atrdiffemacheck = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check)
+    # r_g_p = detect_rg_pattern_signals(kline_data)
+    ema_diff_atr = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check)
 
-    has_signal = False
+    has_signal = (False,None)
 
     def price_power(x):
         return abs(latest['close'] - latest['open']) > (abs(prev['close'] - prev['open']) * x)
@@ -109,14 +108,19 @@ def detect_signal(interval_check, result: dict) -> bool:
     #     if c and atrdiffemacheck:
     #         has_signal = True
 
-    if interval_check == '1h':
+    if interval_check == '1h' and 'LONG' in Config.POSITION_SIDE:
         # c = (latest['low'] > prev['low']) and (latest['high'] > prev['high']) and (latest['close'] > latest['open'])
         # cc = (current['low'] < latest['low']) and (current['low'] < prev['low']) and (current['low'] < extra_prev['low'])
         # d = (latest['high']-latest['close']) < (latest['close']-latest['low']) * 1
         # e = (latest['low'] <= extra_prev['high'])
-        f = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-        if r_g_p and atrdiffemacheck and price_power(1.3) and f:
-            has_signal = True
+        red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
+        if red_green and price_power(0.6):
+            has_signal = (True,'做多')
+
+    if interval_check == '1h' and 'SHORT' in Config.POSITION_SIDE:
+        red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
+        if red_green and price_power(0.6):
+            has_signal = (True,'做空')
 
     return has_signal
 

@@ -129,7 +129,8 @@ class SignalRecorder:
         self.save()
 
         msg = f"已记录信号: {symbol} - {signal_type} - 价格: {open_price}"
-        logger.info(msg)
+
+        # logger.info(msg)
         return True, msg
 
     def save(self):
@@ -550,7 +551,7 @@ class SignalRecorder:
                     # 检查价格是否相近（避免微小波动重复记录）
                     price_diff = abs(open_price - signal["open_price"]) / signal["open_price"]
                     if price_diff < 0.01:  # 价格差异小于1%
-                        logger.info(f"检测到重复信号: {symbol} {signal_type} 价格差异: {price_diff:.2%} 时间差: {time_diff:.1f}分钟")
+                        # logger.info(f"检测到重复信号: {symbol} {signal_type} 价格差异: {price_diff:.2%} 时间差: {time_diff:.1f}分钟")
                         return True
 
         return False

@@ -14,6 +14,8 @@ from signal_manager import SignalManager
 from mouse_operator import MouseOperator
 import requests
 from ema_atr_manager import EmaAtrManager
+from speaking_manager import PlaySound
+import threading
 
 
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[
@@ -40,6 +42,7 @@ class TradingSignalBot:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
         self.mouse_operator = MouseOperator()  # 新增
         self.ema_atr_operator = EmaAtrManager()
+        self.play_operator = PlaySound()
 
         self.running = False
         self.last_display_time = time.time()
@@ -47,6 +50,8 @@ class TradingSignalBot:
         self.is_scanning = False
         self.last_scan_time: Optional[datetime] = None
 
+        self.sound_d = {}
+        self.debug_n = 0
     async def run(self):
         """运行主程序"""
         self.running = True
@@ -111,7 +116,8 @@ class TradingSignalBot:
 
     def should_scan(self, now: datetime) -> bool:
         """判断是否应该扫描"""
-        if self.config.SCAN_INTERVALS_DEBUG:
+        if self.config.SCAN_INTERVALS_DEBUG and self.debug_n ==0:
+            self.debug_n+=1
             if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 60:
                 return False
         else:
@@ -169,6 +175,8 @@ class TradingSignalBot:
             self.last_scan_time = scan_time
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             logger.error(f"❌ 扫描失败: {e}")
         finally:
             self.is_scanning = False
@@ -209,15 +217,18 @@ class TradingSignalBot:
                         interval,
                         result,
                     )
-                    if has_signal:
+                    if has_signal[0]:
                         n = signal_d.get(result['symbol'])[0] + 1
                         signal_d.update({result['symbol']: [n,result]})
-
+                        self.sound_d.update({result['symbol']:has_signal[1]})
         count = len(self.config.KLINE_INTERVAL)
         for k, v in signal_d.items():
             if v[0] == count:
                 self.recorder(v[1])
-                signal_symbols.append(k)
+                if '\u4e00' <= k <= '\u9fff':
+                    print(f'已剔除中文品种{k}')
+                else:
+                    signal_symbols.append(k)
 
         # 更新信号管理器
         self.signal_manager.update_signals(signal_symbols)
@@ -251,9 +262,9 @@ class TradingSignalBot:
                 time_str = beijing_time.strftime("%Y/%m/%d %H:%M:%S")
 
                 # 调试信息：打印时间转换结果
-                logger.debug(f"时间转换: timestamp_ms={timestamp_ms}, "
-                             f"UTC={utc_time.strftime('%Y/%m/%d %H:%M:%S')}, "
-                             f"Beijing={time_str}")
+                # logger.debug(f"时间转换: timestamp_ms={timestamp_ms}, "
+                #              f"UTC={utc_time.strftime('%Y/%m/%d %H:%M:%S')}, "
+                #              f"Beijing={time_str}")
 
                 # 记录信号（返回是否成功）
                 success, message = self.config.signal_recorder.add_signal(
@@ -263,14 +274,14 @@ class TradingSignalBot:
                     time_str=time_str,  # 使用K线开始时间的北京时间
                     check_duplicate=check_duplicate
                 )
-
-                if not success:
-                    # 记录重复信号信息
-                    logger.debug(f"重复信号: {message}")
-                else:
-                    # 记录成功信息
-                    logger.info(f"✅ 记录信号: {result['symbol']} {'多周期混合信号'} 时间: {time_str} 价格: {result['data'].iloc[-2]['close']}")
-
+                if self.config.RECORDER_LOGGER:
+                    if not success:
+                        # 记录重复信号信息
+                        logger.debug(f"重复信号: {message}")
+                    else:
+                        # 记录成功信息
+                        logger.info(f"✅ 已记录信号: {result['symbol']} {'多周期混合信号'} 时间: {time_str} 价格: {result['data'].iloc[-2]['close']}")
+                        pass
             except Exception as e:
                 logger.error(f"❌ 记录信号失败: {e}")
                 # 调试信息：打印异常详情
@@ -330,9 +341,13 @@ class TradingSignalBot:
 
         executed_symbol = result['executed']
         move = result['moved']
-
         # 总是执行鼠标操作（无论是否移动）
         success = await self._perform_mouse_operation(executed_symbol)
+        if self.config.PLAY_SOUND:
+            if self.sound_d.get(executed_symbol) =='做多':
+                threading.Thread(target=self.play_operator.play_sound_for_LONG(), daemon=True).start()
+            else:
+                threading.Thread(target=self.play_operator.play_sound_for_SHORT(), daemon=True).start()
 
         if success:
             if move:
@@ -358,6 +373,12 @@ class TradingSignalBot:
 
         # 总是执行鼠标操作（无论是否移动）
         success = await self._perform_mouse_operation(executed_symbol)
+        if self.config.PLAY_SOUND:
+            if self.sound_d.get(executed_symbol) =='做多':
+                threading.Thread(target=self.play_operator.play_sound_for_LONG(), daemon=True).start()
+
+            else:
+                threading.Thread(target=self.play_operator.play_sound_for_SHORT(), daemon=True).start()
 
         if success:
             if move:
@@ -427,7 +448,7 @@ class TradingSignalBot:
         """计算下次扫描时间"""
         current_minute = now.minute
         current_sec = now.second
-        if self.config.SCAN_INTERVALS_DEBUG:
+        if self.config.SCAN_INTERVALS_DEBUG and self.debug_n ==0:
             if current_sec < self.config.SC:
                 r_m=current_minute
             else:
@@ -444,7 +465,7 @@ class TradingSignalBot:
                 if interval > current_minute:
                     next_time = now.replace(
                         minute=interval,
-                        second=0,
+                        second=min(self.config.SCAN_SECOND_DELAY),
                         microsecond=0
                     )
                     return next_time
@@ -454,7 +475,7 @@ class TradingSignalBot:
             next_hour_time = now + datetime.timedelta(hours=1)
             next_time = next_hour_time.replace(
                 minute=min(self.config.SCAN_INTERVALS[1]),
-                second=0,
+                second=min(self.config.SCAN_SECOND_DELAY),
                 microsecond=0
             )
             return next_time
@@ -469,7 +490,7 @@ class TradingSignalBot:
                     next_time = now.replace(
                         hour=hour,
                         minute=min(minute_points),
-                        second=0,
+                        second=min(self.config.SCAN_SECOND_DELAY),
                         microsecond=0
                     )
                     return next_time
@@ -480,7 +501,7 @@ class TradingSignalBot:
             next_time = tomorrow.replace(
                 hour=min(hour_points),
                 minute=min(minute_points),
-                second=0,
+                second=min(self.config.SCAN_SECOND_DELAY),
                 microsecond=0
             )
             return next_time

@@ -49,6 +49,10 @@ def interval_divide():
             # 在0,4,8,12,16,20点运行
             hour_points = [0, 4, 8, 12, 16, 20]
             SCHEDULE_RULES[interval] = (hour_points, [0])
+        elif minutes == 1440:
+
+            hour_points = [8]
+            SCHEDULE_RULES[interval] = (hour_points, [0])
 
     return SCHEDULE_RULES
 
@@ -84,10 +88,12 @@ class Config:
         "http": "http://127.0.0.1:7890",
         "https": "http://127.0.0.1:7890"
     })
+
     try:
         from signal_recorder import SignalRecorder
         signal_recorder = SignalRecorder()
         RECORDER_AVAILABLE = True
+        RECORDER_LOGGER = False
     except ImportError:
         logger = logging.getLogger(__name__)
         logger.warning("SignalRecorder未找到，信号将不会被记录")
@@ -105,10 +111,11 @@ class Config:
     }
 
     #  ---------------------------------------------------------#
-    SCAN_INTERVALS_DEBUG = False  # 扫描时间调试（True则每分钟运行一次）
+    SCAN_INTERVALS_DEBUG = True  # 扫描时间调试（True则启动时先运行一次）
     KLINE_INTERVAL = ['1h']
     MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到80品种
+    POSITION_SIDE = ['LONG','SHORT']
     #  ---------------------------------------------------------#
 
     if SCAN_INTERVALS_DEBUG:
@@ -134,4 +141,4 @@ class Config:
     SCAN_INTERVALS = interval_divide().get(KLINE_INTERVAL_SORT[-1])
 
     EMA_ATR_INFO = False
-    USE_TRADINGVIEW = True
+    PLAY_SOUND = True

@@ -59,13 +59,14 @@ class MouseOperator:
                 pyperclip.copy(symbol)  # 复制到剪贴板
                 pyautogui.hotkey('ctrl', 'a')
                 pyautogui.hotkey('ctrl', 'v')
-                time.sleep(0.1)
+                time.sleep(0.3)
 
                 pyautogui.moveTo(coords['second_click'], duration=0.05)
                 time.sleep(0.15)
                 pyautogui.click()
                 time.sleep(0.1)
                 return True
+
         except Exception as e:
             logger.error(f"❌ 操作失败: {e}")
             return False
