@@ -20,7 +20,32 @@ class SignalManager:
             self.signal_symbols_list = symbols
             self.current_index = -1
             self.executed_symbols.clear()
-            logger.info(f"📊 更新信号列表: {', '.join(symbols)} (共{len(symbols)}个)")
+
+            logger.info(f"更新信号列表 (共{len(symbols)}个):")
+            columns = 5
+            row_count = (len(symbols) + columns - 1) // columns
+
+            # 计算每列的最大宽度
+            col_widths = []
+            for col in range(columns):
+                col_symbols = [symbols[i] for i in range(col, len(symbols), columns)]
+                if col_symbols:
+                    max_len = max(len(s) for s in col_symbols)
+                    col_widths.append(max_len)
+
+            # 输出表格
+            for row in range(row_count):
+                row_items = []
+                for col in range(columns):
+                    idx = row * columns + col
+                    if idx < len(symbols):
+                        item = symbols[idx]
+                        # 对齐显示
+                        padded_item = item.ljust(col_widths[col])
+                        row_items.append(padded_item)
+
+                if row_items:
+                    logger.info("  " + " | ".join(row_items).rstrip())
 
     def get_current_symbol(self) -> Optional[str]:
         with self.lock:

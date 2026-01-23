@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import requests
-from datetime import datetime, timezone, timedelta
+from datetime import timezone, timedelta
 import logging
 from binance.um_futures import UMFutures
 
@@ -24,37 +24,40 @@ INTERVAL_TO_MIN = {
     '1w': 10080,
     '1M': 43200  # 近似值
 }
+
+
 def interval_divide():
-    FILTERED_INTERVALS = {k: v for k, v in INTERVAL_TO_MIN.items()
+    filtered_intervals = {k: v for k, v in INTERVAL_TO_MIN.items()
                           if v >= 1 and v <= 240}
 
-    SCHEDULE_RULES = {}
+    schedule_rules = {}
 
-    for interval, minutes in FILTERED_INTERVALS.items():
+    for interval, minutes in filtered_intervals.items():
         if minutes <= 30:  # 分钟级别周期：
             # 计算分钟数组：每个周期内的分钟点
             minute_points = list(range(0, 60, minutes))
-            SCHEDULE_RULES[interval] = (None, minute_points)
+            schedule_rules[interval] = (None, minute_points)
 
         elif minutes == 60:  # 1小时周期
             # 在整点运行
-            SCHEDULE_RULES[interval] = (None, [0])
+            schedule_rules[interval] = (None, [0])
 
         elif minutes == 120:  # 2小时周期
             # 在0,2,4,6,8,10,12,14,16,18,20,22点运行
             hour_points = list(range(0, 24, 2))
-            SCHEDULE_RULES[interval] = (hour_points, [0])
+            schedule_rules[interval] = (hour_points, [0])
 
         elif minutes == 240:  # 4小时周期
             # 在0,4,8,12,16,20点运行
             hour_points = [0, 4, 8, 12, 16, 20]
-            SCHEDULE_RULES[interval] = (hour_points, [0])
+            schedule_rules[interval] = (hour_points, [0])
         elif minutes == 1440:
 
             hour_points = [8]
-            SCHEDULE_RULES[interval] = (hour_points, [0])
+            schedule_rules[interval] = (hour_points, [0])
 
-    return SCHEDULE_RULES
+    return schedule_rules
+
 
 def display_status():
     """显示初始状态信息"""
@@ -102,11 +105,9 @@ class Config:
     RATELIMIT = get_exchange_info()
     CLICK_COORDINATES_BINANCE = {
         'first_double_click': (165, 175),  # 币安电脑端 查询品种坐标
-        'second_click': (165, 300),}  # 默认下移125单位
+        'second_click': (165, 300), }  # 默认下移125单位
 
     CLICK_COORDINATES_TRADING_VIEW = {
-        # 'first_double_click': (145, 100),  # tradingview电脑端 查询品种坐标
-        # 'second_click': (699, 287),
         'second_click': (758, 421)
     }
 
@@ -114,8 +115,8 @@ class Config:
     SCAN_INTERVALS_DEBUG = True  # 扫描时间调试（True则启动时先运行一次）
     KLINE_INTERVAL = ['1h']
     MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
-    SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到80品种
-    POSITION_SIDE = ['LONG','SHORT']
+    SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到品种
+    POSITION_SIDE = ['LONG', 'SHORT']
     #  ---------------------------------------------------------#
 
     if SCAN_INTERVALS_DEBUG:

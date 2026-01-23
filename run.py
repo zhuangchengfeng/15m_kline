@@ -162,7 +162,7 @@ class TradingSignalBot:
         try:
             signal_symbols = await self.scan_signal_signals()
             if signal_symbols:
-                logger.info(f"🎯 发现信号: {'|*|'.join(signal_symbols)}")
+                # logger.info(f"🎯 发现信号: {'|*|'.join(signal_symbols)}")
                 self.alert_manager.beep_alert()
                 # 显示当前选择的信号
                 current_symbol = self.signal_manager.get_current_symbol()
@@ -226,7 +226,7 @@ class TradingSignalBot:
             if v[0] == count:
                 self.recorder(v[1])
                 if '\u4e00' <= k <= '\u9fff':
-                    print(f'已剔除中文品种{k}')
+                    logger.info(f'已删除中文品种{k}')
                 else:
                     signal_symbols.append(k)
 

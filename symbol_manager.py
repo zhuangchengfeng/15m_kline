@@ -36,9 +36,9 @@ class SymbolManager:
         
         try:
             self.client = UMFutures(proxies=self.proxies)
-            logger.info(f"✅ 信号管理器初始化成功 成交量设置为{min_volume}")
+            logger.info(f"✅ 交易对管理器初始化成功,最小成交量为{min_volume}")
         except Exception as e:
-            logger.error(f"❌ 信号管理器初始化失败: {e}")
+            logger.error(f"❌ 交易对管理器初始化失败: {e}")
             raise
         
         self.trading_symbols = []
