@@ -15,61 +15,6 @@ import pandas as pd
 import numpy as np
 
 
-def detect_rg_pattern_signals(df, close_col='close', open_col='open', low_col='low'):
-    """
-    检测RED_GREEN_K线组合信号
-
-    规则：
-    1. 寻找阴阳K线组合（当前为阴线，前一根为阳线）
-    2. 当发现一个阴阳组合时，向前查找最近的一个阴阳组合
-    3. 如果之前的阴线最低点 > 当前阴线最低点，产生信号
-
-    参数：
-    df: DataFrame，包含OHLC数据
-    close_col: 收盘价列名
-    open_col: 开盘价列名
-    low_col: 最低价列名
-
-    返回：
-    signals: 包含信号的DataFrame
-    """
-
-    # 复制数据避免修改原数据
-    df = df.copy()
-
-    # 确保数据按时间升序排列（旧数据在前，新数据在后）
-    df = df.sort_values('open_time').reset_index(drop=True)
-
-    # 判断K线阴阳（True为阳线，False为阴线）
-    df['is_yang'] = df[close_col] > df[open_col]
-
-    # 找出阴阳组合：
-    df['is_yin_yang_pattern'] = (df['is_yang']) & (~df['is_yang']).shift(1)
-    # 找出所有阴阳组合的位置
-    pattern_indices = df[df['is_yin_yang_pattern']].index.tolist()
-    # 初始化信号列
-    df['signal'] = 0  # 0表示无信号，1表示有信号
-    df['prev_pattern_low'] = np.nan  # 记录前一个模式的最低点
-    df['current_pattern_low'] = np.nan  # 记录当前模式的最低点
-
-    if len(pattern_indices) >= 2:
-        # 只取最后两个索引
-        prev_idx = pattern_indices[-2]-1  # 倒数第二个模式
-        current_idx = pattern_indices[-1]-1  # 最后一个模式（最新的）
-
-        prev_low = df.loc[prev_idx, low_col]
-        current_low = df.loc[current_idx, low_col]
-        # 判断条件
-        if prev_low < current_low:
-            return True
-        else:
-            return False
-    else:
-        return False
-
-
-
-
 
 def detect_signal(interval_check, result: dict) -> tuple:
     """
@@ -82,20 +27,22 @@ def detect_signal(interval_check, result: dict) -> tuple:
     Returns:
         tuple: 是否有信号,语言文本
     """
+    has_signal = (0, None)
+
     kline_data = result['data']
-    kline_data:pd.DataFrame
+    kline_data: pd.DataFrame
     if kline_data is None or len(kline_data) < Config.KLINE_LIMIT and interval_check != '1d':
-        return (False,None)
+        return (0, None)
     # current = kline_data.iloc[-1]
     prev = kline_data.iloc[-3]  # 前一根K线
     latest = kline_data.iloc[-2]  # 最新K线
-    # extra_prev = kline_data.iloc[-4]
+
+    extra_prev = kline_data.iloc[-4]
     # extra_prev_2 = kline_data.iloc[-5]
 
     # r_g_p = detect_rg_pattern_signals(kline_data)
-    ema_diff_atr = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check)
-
-    has_signal = (False,None)
+    # ema_diff_atr = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check)
+    # atr = ema_atr.run(symbol=result['symbol'],klines=kline_data,interval_check=interval_check,return_x='atr')
 
     def price_power(x):
         return abs(latest['close'] - latest['open']) > (abs(prev['close'] - prev['open']) * x)
@@ -103,27 +50,37 @@ def detect_signal(interval_check, result: dict) -> tuple:
     def volume_power(x):
         return latest['volume'] >= (prev['volume'] * x)
 
-    # if interval_check == '15m':
-    #     c = (latest['close'] > latest['open']) and (prev['close'] < prev['open']) and price_power(0.618)
-    #     if c and atrdiffemacheck:
-    #         has_signal = True
+    if 'LONG' in Config.POSITION_SIDE:
+        if interval_check == '1h':
+            # red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
+            # if red_green or volume_power(3):
+            close_prices = kline_data['close'].astype(float).tolist()
+            ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
+            if (latest['close'] > latest['open']) and latest['open'] > ema60 and latest['open'] <= ema60*1.04:
+                has_signal = (1, '做多')
+        if interval_check == '5m':
+            close_prices = kline_data['close'].astype(float).tolist()
+            ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
+            red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
+            if red_green and (latest['open'] <= ema60*1.02) and (latest['open'] > ema60):
+                has_signal = (1, '做多')
+    if 'SHORT' in Config.POSITION_SIDE:
+        if interval_check == '1h':
+            # red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open']) and price_power(2)
+            # if red_green or volume_power(3) :
+            close_prices = kline_data['close'].astype(float).tolist()
+            ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
+            if (latest['close'] < latest['open']) and latest['open'] < ema60 and latest['open'] >= ema60*0.96:
+                has_signal = (-1, '做空')
+        if interval_check == '5m':
+            close_prices = kline_data['close'].astype(float).tolist()
+            ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
+            red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
 
-    if interval_check == '1h' and 'LONG' in Config.POSITION_SIDE:
-        # c = (latest['low'] > prev['low']) and (latest['high'] > prev['high']) and (latest['close'] > latest['open'])
-        # cc = (current['low'] < latest['low']) and (current['low'] < prev['low']) and (current['low'] < extra_prev['low'])
-        # d = (latest['high']-latest['close']) < (latest['close']-latest['low']) * 1
-        # e = (latest['low'] <= extra_prev['high'])
-        red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-        if red_green and price_power(0.6):
-            has_signal = (True,'做多')
-
-    if interval_check == '1h' and 'SHORT' in Config.POSITION_SIDE:
-        red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
-        if red_green and price_power(0.6):
-            has_signal = (True,'做空')
+            if red_green and (latest['open'] >= ema60*0.98) and (latest['open'] < ema60):
+                has_signal = (-1, '做空')
 
     return has_signal
-
 
 
 # 辅助函数：时间戳转北京时间字符串

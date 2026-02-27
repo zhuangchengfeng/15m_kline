@@ -37,3 +37,5 @@ def monitor_active_window(interval=1):
 
         time.sleep(interval)
 
+
+

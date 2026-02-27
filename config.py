@@ -95,7 +95,7 @@ class Config:
     try:
         from signal_recorder import SignalRecorder
         signal_recorder = SignalRecorder()
-        RECORDER_AVAILABLE = True
+        RECORDER_AVAILABLE = False
         RECORDER_LOGGER = False
     except ImportError:
         logger = logging.getLogger(__name__)
@@ -113,10 +113,11 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = True  # 扫描时间调试（True则启动时先运行一次）
-    KLINE_INTERVAL = ['1h']
-    MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
+    KLINE_INTERVAL = ['1h','5m']
+    MIN_VOLUME = 20000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到品种
-    POSITION_SIDE = ['LONG', 'SHORT']
+    POSITION_SIDE = ['LONG','SHORT']
+    BLACK_SYMBOL_LIST = []
     #  ---------------------------------------------------------#
 
     if SCAN_INTERVALS_DEBUG:
@@ -127,7 +128,7 @@ class Config:
     PROXY = 'http://127.0.0.1:7890'
     PROXY_D = {"http": 'http://127.0.0.1:7890', "https": 'http://127.0.0.1:7890'}
     KLINE_LIMIT = 499  # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
-
+    KLINE_LIMIT_UPDATE = 10  #增量更新最小K线  节省流量
     DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
     UTC_TZ = timezone.utc
     BEIJING_TZ = timezone(timedelta(hours=8))
@@ -143,3 +144,6 @@ class Config:
 
     EMA_ATR_INFO = False
     PLAY_SOUND = True
+    API_KEY_SECRET_FILE_PATH = "H:\交易经验\l.txt"    # save your bn key and secret .txt  double lines
+    TARGET = round(100000 / 7, 0)  # 你的目标本金,your point USDT in the future
+    RATIO = 1.2

@@ -141,7 +141,7 @@ class EmaAtrManager:
             traceback.print_exc()
             return {"error": str(e)}
 
-    def run(self,symbol,klines=None,interval_check=None):
+    def run(self,symbol,klines=None,interval_check=None,return_x=None):
         """
         运行分析器
         """
@@ -151,6 +151,8 @@ class EmaAtrManager:
         else:
             result = self.get_current_ema60_atr(symbol=symbol)
         result: dict
+        if return_x == 'atr':
+            return result['atr']
 
         if "error" in result:
             print(f"  错误: {result['error']}")

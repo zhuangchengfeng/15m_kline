@@ -16,20 +16,20 @@ import requests
 from ema_atr_manager import EmaAtrManager
 from speaking_manager import PlaySound
 import threading
+import os
 
 
-async def fetch_all_kline(symbols: List[str], interval: str, limit: int, proxy: str, max_retries: int) -> List[
-    Dict[str, Any]]:
+
+async def fetch_all_kline(symbols: List[str], interval: str, limit: int, max_retries: int,
+                          collector: BinanceKlineCollector, use_cache: bool = True) -> List[Dict[str, Any]]:
     """并发获取所有币种K线数据"""
-    collector = BinanceKlineCollector(proxy)
-    tasks = [collector.fetch_kline(symbol, interval, limit, max_retries) for symbol in symbols]
+    tasks = [collector.fetch_kline(symbol, interval, limit, max_retries, use_cache) for symbol in symbols]
     results = await asyncio.gather(*tasks)
     return [{
         'symbol': symbols[i],
         'data': results[i],
         'success': results[i] is not None
     } for i in range(len(symbols))]
-
 
 # 主程序类
 class TradingSignalBot:
@@ -52,6 +52,7 @@ class TradingSignalBot:
 
         self.sound_d = {}
         self.debug_n = 0
+        self.time = 0
     async def run(self):
         """运行主程序"""
         self.running = True
@@ -105,11 +106,17 @@ class TradingSignalBot:
             await self.perform_scan(now)
             url = 'https://fapi.binance.com/fapi/v1/ping'
             res = requests.get(url=url, proxies=Config.PROXY_D)
+            if os.path.exists(self.config.API_KEY_SECRET_FILE_PATH):
+                from really import gpn
+                self.times = gpn()
+                # logger.info(f'还剩 {self.times:.2f} 次复利达到目标')
             logger.info(f'本次扫描权重占用{res.headers.get("x-mbx-used-weight-1m")} / {Config.RATELIMIT} ')
+
+
         # 显示状态 - 实时更新
         current_time = time.time()
         if current_time - self.last_display_time >= 0.1:
-            self.display_status_info(now)
+            self.display_status_info(now,self.times)
             self.last_display_time = current_time
 
         await asyncio.sleep(0.2)
@@ -183,6 +190,12 @@ class TradingSignalBot:
 
     async def scan_signal_signals(self) -> List[str]:
         """扫描信号"""
+        # 重置统计信息
+        self.kline_collector.save_stats_snapshot()
+
+        # 检查是否是首次扫描
+        first_scan = not hasattr(self.kline_collector, 'first_scan_done') or not self.kline_collector.first_scan_done
+
         # 获取币种列表
         try:
             from symbol_manager import SymbolManager
@@ -190,24 +203,42 @@ class TradingSignalBot:
             symbols = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
         except ImportError:
             logger.warning("import出错，使用示例币种")
-            symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT']
+            symbols = ['BTCUSDT']
 
-        # 并发获取数据 并存入字典Value
+        # 并发获取数据
         d = {}
         for i in self.config.KLINE_INTERVAL_SORT:
+            # 根据是否首次扫描决定是否使用缓存
+            use_cache = not first_scan
+
+            # 修改 fetch_all_kline 函数也需要传入 use_cache 参数
             results_aw = await fetch_all_kline(
                 symbols,
                 i,
                 self.config.KLINE_LIMIT,
-                self.config.PROXY,
-                self.config.MAX_RETRIES
+                self.config.MAX_RETRIES,
+                self.kline_collector,
+                use_cache  # 新增参数
             )
             d.update({i: results_aw})
+
+        # 如果是首次扫描，标记已完成
+        if first_scan:
+            self.kline_collector.first_scan_done = True
+            logger.info("✅ 首次扫描完成，已缓存所有K线数据，后续将使用增量更新")
+
+        # 打印本次扫描的流量统计
+        total_mb = self.kline_collector.total_bytes / (1024 * 1024)
+        once_mb = (self.kline_collector.total_bytes - self.kline_collector.before_bytes) / (1024 * 1024)
+        logger.info(
+            f"📊 本次扫描流量: 请求 {self.kline_collector.request_count - self.kline_collector.before_request_count} 次, "
+            f"本次接收数据: {once_mb:.2f} MB, "
+            f"运行累计流量：{total_mb:.2f} MB")
 
         # 检测信号
         signal_d = {}
         for i in symbols:
-            signal_d.update({i: [0,None]})
+            signal_d.update({i: [0, None]})
         signal_symbols = []
         for interval, results in d.items():
             for result in results:
@@ -218,13 +249,13 @@ class TradingSignalBot:
                         result,
                     )
                     if has_signal[0]:
-                        n = signal_d.get(result['symbol'])[0] + 1
-                        signal_d.update({result['symbol']: [n,result]})
-                        self.sound_d.update({result['symbol']:has_signal[1]})
+                        n = signal_d.get(result['symbol'])[0] + has_signal[0]
+                        signal_d.update({result['symbol']: [n, result]})
+                        self.sound_d.update({result['symbol']: has_signal[1]})
         count = len(self.config.KLINE_INTERVAL)
         for k, v in signal_d.items():
-            if v[0] == count:
-                self.recorder(v[1])
+            if v[0] >= count or v[0] <= -count:
+                self.recorder(v[1], record_signal=self.config.RECORDER_AVAILABLE)
                 if '\u4e00' <= k <= '\u9fff':
                     logger.info(f'已删除中文品种{k}')
                 else:
@@ -402,7 +433,7 @@ class TradingSignalBot:
             logger.error(f"鼠标操作异常: {e}")
             return False
 
-    def display_status_info(self, now: datetime):
+    def display_status_info(self, now: datetime, times: float):
         """显示状态信息"""
         current_time_str = now.strftime("%H:%M:%S")
 
@@ -424,7 +455,7 @@ class TradingSignalBot:
             if total_seconds > 0:
                 mins, secs = divmod(total_seconds, 60)
                 countdown = f"{mins:02d}:{secs:02d}"
-                status_str = f"{executed_status} [{current_time_str}] 当前: {current_symbol} {position_info} | 下次扫描倒计时: {countdown}"
+                status_str = f"{executed_status} [{current_time_str}] 当前: {current_symbol} {position_info} | 下次扫描倒计时: {countdown} | 距离\033[32m{self.config.TARGET}\033[0mUSDT目标还剩\033[33m{times}\033[0m次\033[34m{(self.config.RATIO-1):.1%}\033[0m的复利"
             else:
                 status_str = f"{executed_status} [{current_time_str}] 当前: {current_symbol} {position_info} | 即将扫描..."
         else:
@@ -435,7 +466,7 @@ class TradingSignalBot:
             if total_seconds > 0:
                 mins, secs = divmod(total_seconds, 60)
                 countdown = f"{mins:02d}:{secs:02d}"
-                status_str = f"📊 [{current_time_str}]  | 下次扫描: {countdown}"
+                status_str = f"📊 [{current_time_str}]  | 下次扫描: {countdown} | 距离\033[32m{self.config.TARGET}\033[0mUSDT目标还剩\033[33m{times}\033[0m次\033[34m{(self.config.RATIO-1):.1%}\033[0m的复利"
             else:
                 status_str = f"📊 [{current_time_str}]  | 即将扫描..."
 
