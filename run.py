@@ -146,12 +146,12 @@ class TradingSignalBot:
                 return False
 
             # 避免重复扫描（按分钟，不是按秒）
-            # if self.last_scan_time and now.minute == self.last_scan_time.minute:
-            #     return False
+            if self.last_scan_time and now.minute == self.last_scan_time.minute:
+                return False
 
             # 避免重复扫描
-            if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 57:
-                return False
+            # if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 57:
+            #     return False
 
             if isinstance(self.config.SCAN_SECOND_DELAY, list):
                 if now.second not in self.config.SCAN_SECOND_DELAY:
@@ -221,19 +221,21 @@ class TradingSignalBot:
                 use_cache  # 新增参数
             )
             d.update({i: results_aw})
+        data_legal_length = (len(d.get(self.config.KLINE_INTERVAL_SORT[0])))
 
         # 如果是首次扫描，标记已完成
         if first_scan:
             self.kline_collector.first_scan_done = True
-            logger.info("✅ 首次扫描完成，已缓存所有K线数据，后续将使用增量更新")
+            # logger.info("✅ 首次扫描完成，已缓存所有K线数据，后续将使用增量更新")
 
         # 打印本次扫描的流量统计
         total_mb = self.kline_collector.total_bytes / (1024 * 1024)
         once_mb = (self.kline_collector.total_bytes - self.kline_collector.before_bytes) / (1024 * 1024)
         logger.info(
-            f"📊 本次扫描流量: 请求 {self.kline_collector.request_count - self.kline_collector.before_request_count} 次, "
-            f"本次接收数据: {once_mb:.2f} MB, "
-            f"运行累计流量：{total_mb:.2f} MB")
+            f"📊 本次扫描流量: 请求 {self.kline_collector.request_count - self.kline_collector.before_request_count} 次 | "
+            f"本次接收数据: {once_mb:.2f} MB | "
+            f"运行累计流量：{total_mb:.2f} MB | "
+            f"获得{data_legal_length} / {self.config.SYMBOLS_RANGE[1]} 品种数据")
 
         # 检测信号
         signal_d = {}
@@ -252,6 +254,7 @@ class TradingSignalBot:
                         n = signal_d.get(result['symbol'])[0] + has_signal[0]
                         signal_d.update({result['symbol']: [n, result]})
                         self.sound_d.update({result['symbol']: has_signal[1]})
+
         count = len(self.config.KLINE_INTERVAL)
         for k, v in signal_d.items():
             if v[0] >= count or v[0] <= -count:

@@ -52,32 +52,27 @@ def detect_signal(interval_check, result: dict) -> tuple:
 
     if 'LONG' in Config.POSITION_SIDE:
         if interval_check == '1h':
-            # red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            # if red_green or volume_power(3):
             close_prices = kline_data['close'].astype(float).tolist()
             ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
-            if (latest['close'] > latest['open']) and latest['open'] > ema60 and latest['open'] <= ema60*1.04:
+            if (latest['close'] > latest['open']) and latest['open'] > ema60 and latest['open'] <= ema60*1.0618:
                 has_signal = (1, '做多')
         if interval_check == '5m':
             close_prices = kline_data['close'].astype(float).tolist()
             ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
             red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            if red_green and (latest['open'] <= ema60*1.02) and (latest['open'] > ema60):
+            if red_green and (latest['open'] <= ema60*1.04382) and (latest['open'] > ema60):
                 has_signal = (1, '做多')
     if 'SHORT' in Config.POSITION_SIDE:
         if interval_check == '1h':
-            # red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open']) and price_power(2)
-            # if red_green or volume_power(3) :
             close_prices = kline_data['close'].astype(float).tolist()
             ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
-            if (latest['close'] < latest['open']) and latest['open'] < ema60 and latest['open'] >= ema60*0.96:
+            if (latest['close'] < latest['open']) and latest['open'] < ema60 and latest['open'] >= ema60/1.0618:
                 has_signal = (-1, '做空')
         if interval_check == '5m':
             close_prices = kline_data['close'].astype(float).tolist()
             ema60 = ema_atr.calculate_ema(prices=close_prices,period=60)[-2]
             red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
-
-            if red_green and (latest['open'] >= ema60*0.98) and (latest['open'] < ema60):
+            if red_green and (latest['open'] >= ema60/1.04382) and (latest['open'] < ema60):
                 has_signal = (-1, '做空')
 
     return has_signal
