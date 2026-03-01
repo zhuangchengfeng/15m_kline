@@ -1,6 +1,9 @@
 import pygetwindow as gw
 import time
 
+import logging
+from functools import wraps
+
 
 def get_active_window_info():
     """获取当前活动窗口信息"""
@@ -37,5 +40,28 @@ def monitor_active_window(interval=1):
 
         time.sleep(interval)
 
+
+from functools import wraps
+import time
+
+
+def async_timer_decorator(func):
+    @wraps(func)
+    async def wrapper(self, *args, **kwargs):  # 注意 self 参数
+        start_time = time.time()
+        result = await func(self, *args, **kwargs)
+        end_time = time.time()
+
+        # 尝试从实例获取 logger
+        if hasattr(self, 'logger'):
+            self.logger.info(f"{func.__name__} 运行时间: {end_time - start_time:.2f} 秒")
+        else:
+            # 如果没有 logger，使用 print 作为后备
+            logger = logging.getLogger(__name__)
+            logger.info(f"{func.__name__} 运行时间: {end_time - start_time:.2f} 秒")
+
+        return result
+
+    return wrapper
 
 

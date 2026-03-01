@@ -1,0 +1,114 @@
+{
+    "RAVEUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 0.35248,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 0.35278,
+                "after_low_price": 0.3384,
+                "rate_of_up_change": "+0.09%",
+                "rate_of_down_change": "-3.99%",
+                "interval": "5m",
+                "position_side": "L",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    },
+    "HYPEUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 28.171,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 29.688,
+                "after_low_price": 28.115,
+                "rate_of_up_change": "+5.38%",
+                "rate_of_down_change": "-0.20%",
+                "interval": "5m",
+                "position_side": "L",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    },
+    "PUMPUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 0.001763,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 0.001787,
+                "after_low_price": 0.00175,
+                "rate_of_up_change": "+1.36%",
+                "rate_of_down_change": "-0.74%",
+                "interval": "5m",
+                "position_side": "S",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    },
+    "ATOMUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 1.787,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 1.807,
+                "after_low_price": 1.78,
+                "rate_of_up_change": "+1.12%",
+                "rate_of_down_change": "-0.39%",
+                "interval": "5m",
+                "position_side": "S",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    },
+    "XPLUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 0.091,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 0.0941,
+                "after_low_price": 0.0907,
+                "rate_of_up_change": "+3.41%",
+                "rate_of_down_change": "-0.33%",
+                "interval": "5m",
+                "position_side": "S",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    },
+    "BCHUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 445.28,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 446.3,
+                "after_low_price": 440.08,
+                "rate_of_up_change": "+0.23%",
+                "rate_of_down_change": "-1.17%",
+                "interval": "5m",
+                "position_side": "S",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    },
+    "INJUSDT": {
+        "signals": [
+            {
+                "open_time": "2026/03/01 00:15:00",
+                "open_price": 2.943,
+                "after_close_time": "2026/03/01 02:15:00",
+                "after_high_price": 2.969,
+                "after_low_price": 2.923,
+                "rate_of_up_change": "+0.88%",
+                "rate_of_down_change": "-0.68%",
+                "interval": "5m",
+                "position_side": "S",
+                "update_time": "2026/03/01 09:35:56"
+            }
+        ]
+    }
+}

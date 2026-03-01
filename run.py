@@ -17,7 +17,7 @@ from ema_atr_manager import EmaAtrManager
 from speaking_manager import PlaySound
 import threading
 import os
-
+from tools import async_timer_decorator
 
 
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, max_retries: int,
@@ -51,8 +51,9 @@ class TradingSignalBot:
         self.last_scan_time: Optional[datetime] = None
 
         self.sound_d = {}
-        self.debug_n = 0
-        self.time = 0
+        if os.path.exists(self.config.API_KEY_SECRET_FILE_PATH):
+            from really import xxt
+            self.times = xxt()
     async def run(self):
         """运行主程序"""
         self.running = True
@@ -62,6 +63,11 @@ class TradingSignalBot:
 
         # 启动键盘监听
         self.keyboard_handler.start()
+
+        if self.config.SCAN_ON_START:
+            # 启动时立即执行一次扫描
+            logger.info("🚀 执行首次扫描")
+            await self.process_cycle(un_check=True)
 
         # 启动主循环
         try:
@@ -93,25 +99,24 @@ class TradingSignalBot:
                 traceback.print_exc()
                 await asyncio.sleep(1)
 
-    async def process_cycle(self):
+    async def process_cycle(self,un_check=False):
         """处理每个周期"""
         now = datetime.datetime.now()
 
         # 处理键盘事件
         await self.handle_keyboard_events()
+        if un_check:
+            # 检查是否需要扫描
+            check = True
+        else:
+            check = self.should_scan(now)
 
-        # 检查是否需要扫描
-        check = self.should_scan(now)
         if check:
             await self.perform_scan(now)
             url = 'https://fapi.binance.com/fapi/v1/ping'
-            res = requests.get(url=url, proxies=Config.PROXY_D)
-            if os.path.exists(self.config.API_KEY_SECRET_FILE_PATH):
-                from really import gpn
-                self.times = gpn()
-                # logger.info(f'还剩 {self.times:.2f} 次复利达到目标')
-            logger.info(f'本次扫描权重占用{res.headers.get("x-mbx-used-weight-1m")} / {Config.RATELIMIT} ')
-
+            res = requests.get(url=url, proxies=self.config.PROXY_D)
+            logger.info(f'本次扫描权重占用{res.headers.get("x-mbx-used-weight-1m")} / {self.config.RATELIMIT} ')
+            await self.log_memory_usage()
 
         # 显示状态 - 实时更新
         current_time = time.time()
@@ -121,44 +126,41 @@ class TradingSignalBot:
 
         await asyncio.sleep(0.2)
 
+    async def log_memory_usage(self):
+        """记录内存使用情况"""
+        memory_mb = self.kline_collector.get_cache_memory_mb()
+        logger.info(f"💾 内存缓存占用: {memory_mb:.2f} MB")
+
+        # 如果需要详细信息
+        if self.config.SCAN_INTERVALS_DEBUG:
+            stats = self.kline_collector.get_cache_memory_stats()
+            logger.debug(f"内存缓存详情: {stats['total_items']} 个对象, 总计 {stats['total_mb']:.2f} MB")
+
     def should_scan(self, now: datetime) -> bool:
         """判断是否应该扫描"""
-        if self.config.SCAN_INTERVALS_DEBUG and self.debug_n ==0:
-            self.debug_n+=1
-            if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 60:
+        if self.config.SCAN_INTERVALS[0] is not None:
+            if now.hour not in self.config.SCAN_INTERVALS[0]:
                 return False
-        else:
-            # 检查时间间隔
-            # if now.minute not in self.config.SCAN_INTERVALS:
-            #     return False
-            if self.config.SCAN_INTERVALS[0] is not None:
-                if now.hour not in self.config.SCAN_INTERVALS[0]:
-                    return False
-                else:
-                    if now.minute not in self.config.SCAN_INTERVALS[1]:
-                        return False
             else:
                 if now.minute not in self.config.SCAN_INTERVALS[1]:
                     return False
-
-            # 检查是否正在扫描中
-            if self.is_scanning:
+        else:
+            if now.minute not in self.config.SCAN_INTERVALS[1]:
                 return False
 
-            # 避免重复扫描（按分钟，不是按秒）
-            if self.last_scan_time and now.minute == self.last_scan_time.minute:
+        # 检查是否正在扫描中
+        if self.is_scanning:
+            return False
+
+        # 避免重复扫描（按分钟，不是按秒）
+        if self.last_scan_time and now.minute == self.last_scan_time.minute:
+            return False
+        if isinstance(self.config.SCAN_SECOND_DELAY, list):
+            if now.second not in self.config.SCAN_SECOND_DELAY:
                 return False
-
-            # 避免重复扫描
-            # if self.last_scan_time and (now - self.last_scan_time).total_seconds() < 57:
-            #     return False
-
-            if isinstance(self.config.SCAN_SECOND_DELAY, list):
-                if now.second not in self.config.SCAN_SECOND_DELAY:
-                    return False
-            elif isinstance(self.config.SCAN_SECOND_DELAY, int):
-                if now.second != self.config.SCAN_SECOND_DELAY:
-                    return False
+        elif isinstance(self.config.SCAN_SECOND_DELAY, int):
+            if now.second != self.config.SCAN_SECOND_DELAY:
+                return False
 
         return True
 
@@ -187,10 +189,10 @@ class TradingSignalBot:
             logger.error(f"❌ 扫描失败: {e}")
         finally:
             self.is_scanning = False
-
+    @async_timer_decorator
     async def scan_signal_signals(self) -> List[str]:
         """扫描信号"""
-        # 重置统计信息
+        # 保存统计信息
         self.kline_collector.save_stats_snapshot()
 
         # 检查是否是首次扫描
@@ -258,9 +260,13 @@ class TradingSignalBot:
         count = len(self.config.KLINE_INTERVAL)
         for k, v in signal_d.items():
             if v[0] >= count or v[0] <= -count:
-                self.recorder(v[1], record_signal=self.config.RECORDER_AVAILABLE)
+                if v[0] >=count:
+                    position_side = 'L'
+                else:
+                    position_side = 'S'
+                self.recorder(result=v[1],position_side=position_side, record_signal=self.config.RECORDER_AVAILABLE)
                 if '\u4e00' <= k <= '\u9fff':
-                    logger.info(f'已删除中文品种{k}')
+                    logger.debug(f'已删除中文品种{k}')
                 else:
                     signal_symbols.append(k)
 
@@ -268,12 +274,12 @@ class TradingSignalBot:
         self.signal_manager.update_signals(signal_symbols)
         return signal_symbols
 
-    def recorder(self,result: dict , record_signal: bool = True, check_duplicate: bool = True):
+    def recorder(self,result: dict , position_side:str ,record_signal: bool = True, check_duplicate: bool = True):
         # 如果有信号且需要记录
 
         if record_signal and self.config.RECORDER_AVAILABLE:
             try:
-                # 获取开仓价格（使用latest['close']）
+                # 获取开仓价格（使用latest['close']） 即前一根K线的收盘价作为当前开仓价格
 
                 # 获取当前K线的open_time（当前正在运行的K线的开始时间）
                 # kline_data.iloc[-1] 是当前正在运行的K线
@@ -301,20 +307,23 @@ class TradingSignalBot:
                 #              f"Beijing={time_str}")
 
                 # 记录信号（返回是否成功）
-                success, message = self.config.signal_recorder.add_signal(
-                    symbol=result['symbol'],
-                    signal_type='多周期混合信号',
-                    open_price=result['data'].iloc[-2]['close'],
-                    time_str=time_str,  # 使用K线开始时间的北京时间
-                    check_duplicate=check_duplicate
-                )
+                signal_params = {
+                    'symbol': result['symbol'],
+                    'interval': self.config.KLINE_INTERVAL_SORT[-1],
+                    'position_side': position_side,
+                    'open_price': result['data'].iloc[-2]['close'],
+                    'time_str': time_str,  # 使用K线开始时间的北京时间
+                    'check_duplicate': check_duplicate,
+                }
+
+                success, message = self.config.signal_recorder.add_signal(**signal_params)
                 if self.config.RECORDER_LOGGER:
                     if not success:
                         # 记录重复信号信息
                         logger.debug(f"重复信号: {message}")
                     else:
                         # 记录成功信息
-                        logger.info(f"✅ 已记录信号: {result['symbol']} {'多周期混合信号'} 时间: {time_str} 价格: {result['data'].iloc[-2]['close']}")
+                        logger.debug(f"✅ 已记录信号: {result['symbol']} 时间: {time_str} 价格: {result['data'].iloc[-2]['close']}")
                         pass
             except Exception as e:
                 logger.error(f"❌ 记录信号失败: {e}")
@@ -330,14 +339,14 @@ class TradingSignalBot:
                     # 使用当前时间重新尝试记录
                     success, message = self.config.signal_recorder.add_signal(
                         symbol=result['symbol'],
-                        signal_type='多周期混合信号',
+                        interval=self.config.KLINE_INTERVAL_SORT[-1],
                         open_price=result['data'].iloc[-2]['close'],
                         time_str=backup_time_str,
                         check_duplicate=check_duplicate
                     )
 
                     if success:
-                        logger.info(f"✅ 使用备选时间记录成功: {result['symbol']}")
+                        logger.debug(f"✅ 使用备选时间记录成功: {result['symbol']}")
 
                 except Exception as e2:
                     logger.error(f"❌ 备选时间记录也失败: {e2}")
@@ -437,7 +446,8 @@ class TradingSignalBot:
             return False
 
     def display_status_info(self, now: datetime, times: float):
-        """显示状态信息"""
+        """显示状态信息
+            times  次数"""
         current_time_str = now.strftime("%H:%M:%S")
 
         # 获取当前信号信息
@@ -481,18 +491,6 @@ class TradingSignalBot:
     def calculate_next_scan_time(self, now: datetime) -> datetime:
         """计算下次扫描时间"""
         current_minute = now.minute
-        current_sec = now.second
-        if self.config.SCAN_INTERVALS_DEBUG and self.debug_n ==0:
-            if current_sec < self.config.SC:
-                r_m=current_minute
-            else:
-                r_m=current_minute + 1
-            next_time = now.replace(
-                minute=r_m,
-                second=self.config.SC,
-                microsecond=0
-            )
-            return next_time
         if self.config.SCAN_INTERVALS[0] is None:
             # 找到下一个扫描时间点
             for interval in sorted(self.config.SCAN_INTERVALS[1]):
@@ -503,9 +501,7 @@ class TradingSignalBot:
                         microsecond=0
                     )
                     return next_time
-
             # 如果当前时间已过所有扫描点，使用下一个小时的第一个扫描点
-            # 这里也可以简化：直接加1小时，然后设置分钟
             next_hour_time = now + datetime.timedelta(hours=1)
             next_time = next_hour_time.replace(
                 minute=min(self.config.SCAN_INTERVALS[1]),
@@ -517,7 +513,6 @@ class TradingSignalBot:
             current_hour = now.hour
             hour_points = sorted(self.config.SCAN_INTERVALS[0])
             minute_points = self.config.SCAN_INTERVALS[1]
-
             # 在当前天内查找
             for hour in hour_points:
                 if hour > current_hour:
@@ -528,7 +523,6 @@ class TradingSignalBot:
                         microsecond=0
                     )
                     return next_time
-
             # 如果当前时间已过所有扫描点，使用第二天的第一个扫描点
             # 创建一个明天的日期对象
             tomorrow = now + datetime.timedelta(days=1)
@@ -540,21 +534,40 @@ class TradingSignalBot:
             )
             return next_time
 # 主函数
-async def main():
-    config = Config()
+async def main(config):
     bot = TradingSignalBot(config)
     await bot.run()
 
 
 if __name__ == '__main__':
     # 配置日志
+    config = Config()
 
+    # 配置根日志 - 设置为 WARNING 减少第三方库的干扰
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARNING,  # 根日志设为 WARNING，屏蔽第三方库的 DEBUG
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+    local_modules = []
+    for file in os.listdir('.'):
+        if file.endswith('.py') and not file.startswith('__'):
+            module_name = file[:-3]  # 去掉 .py
+            local_modules.append(module_name)
+
+    # 添加 __main__
+    local_modules.append('__main__')
+    level = logging.DEBUG if config.SCAN_INTERVALS_DEBUG else logging.INFO
+
+    # 一键设置所有本地模块的日志级别
+    for module in local_modules:
+        logging.getLogger(module).setLevel(level)
+
+    # 屏蔽第三方库
+    for module in ['aiohttp', 'urllib3', 'asyncio', 'binance', 'requests']:
+        logging.getLogger(module).setLevel(logging.WARNING)
+
     logger = logging.getLogger(__name__)
     try:
-        asyncio.run(main())
+        asyncio.run(main(config))
     except KeyboardInterrupt:
         logger.info("程序已退出")

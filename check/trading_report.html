@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永续合约 · 品种盈亏总览</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 24px;
+            background: #f6f8fc;
+            color: #0a1e2f;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 28px 32px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.03);
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #0c2b4b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .subhead {
+            color: #506680;
+            margin-bottom: 28px;
+            border-bottom: 2px solid #eef2f7;
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.92rem;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 36px;
+        }
+        .stat-card {
+            background: #f2f6fd;
+            border-radius: 18px;
+            padding: 18px 20px;
+            border: 1px solid #e5ebf5;
+        }
+        .stat-card h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #4c6682;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+        .stat-card .value {
+            font-size: 1.9rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .positive { color: #1e8044; }
+        .negative { color: #c23a2e; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        th {
+            background: #f0f5fc;
+            color: #1e3a5f;
+            font-weight: 600;
+            padding: 16px 12px;
+            text-align: right;
+            border-bottom: 1px solid #dce3ec;
+        }
+        th:first-child { text-align: left; padding-left: 20px; }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f0f3f8;
+            text-align: right;
+        }
+        td:first-child { text-align: left; padding-left: 20px; }
+        .symbol-row {
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .symbol-row:hover { background: #f2f8ff; }
+        .symbol-name {
+            font-weight: 700;
+            color: #0a2647;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-icon {
+            color: #5c7b9c;
+            font-size: 0.75rem;
+            display: inline-block;
+            width: 18px;
+        }
+        .trades-detail {
+            background: #fafdff;
+            border-bottom: 2px solid #e9f0f7;
+        }
+        .trades-detail td { padding: 0; }
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.02);
+        }
+        .detail-table th {
+            background: #f4f9fe;
+            font-size: 0.7rem;
+            padding: 10px 8px;
+            color: #385073;
+        }
+        .detail-table td {
+            padding: 10px 8px;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #e7ecf2;
+        }
+        .footer-note {
+            margin-top: 30px;
+            text-align: right;
+            color: #60758b;
+            font-size: 0.75rem;
+            border-top: 1px solid #e6ecf2;
+            padding-top: 20px;
+        }
+        .win { color: #1e8044; }
+        .loss { color: #c23a2e; }
+    </style>
+    <script src="trades_data.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>📊 品种盈亏排行 · 永续全仓</h1>
+    <div class="subhead">
+        <span>数据源: me15.txt · 自动解析生成</span>
+        <span>生成时间: <span id="generateTime"></span></span>
+    </div>
+
+    <div class="summary-grid" id="summaryCards"></div>
+
+    <h2 style="font-size:1.4rem; margin: 32px 0 16px;">📌 按品种汇总 · 点击查看详情</h2>
+    <table id="symbolTable">
+        <thead>
+            <tr>
+                <th>排名</th>
+                <th>品种</th>
+                <th>交易笔数</th>
+                <th>胜率</th>
+                <th>总盈亏 (USDT)</th>
+                <th>平均盈亏</th>
+            </tr>
+        </thead>
+        <tbody id="symbolTbody"></tbody>
+    </table>
+    <div class="footer-note">
+        ⚡ 点击品种行展开/收起该品种所有交易明细 · 按总盈亏从高到低排序
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof TRADES === 'undefined') {
+        console.error('错误: 未找到TRADES数据');
+        return;
+    }
+
+    document.getElementById('generateTime').textContent = new Date().toLocaleString('zh-CN');
+
+    // 计算总体统计
+    const totalTrades = TRADES.length;
+    const profitTrades = TRADES.filter(t => t[7] > 0).length;
+    const lossTrades = TRADES.filter(t => t[7] < 0).length;
+    const totalPnl = TRADES.reduce((sum, t) => sum + t[7], 0);
+
+    document.getElementById('summaryCards').innerHTML = `
+        <div class="stat-card"><h3>总交易笔数</h3><div class="value" style="font-size:1.8rem;">${totalTrades}</div></div>
+        <div class="stat-card"><h3>盈利笔数</h3><div class="value positive">${profitTrades}</div></div>
+        <div class="stat-card"><h3>亏损笔数</h3><div class="value negative">${lossTrades}</div></div>
+        <div class="stat-card"><h3>总盈亏 (USDT)</h3><div class="value ${totalPnl >= 0 ? 'positive' : 'negative'}" style="font-size:1.8rem;">${totalPnl > 0 ? '+' : ''}${totalPnl.toFixed(2)}</div></div>
+    `;
+
+    const symbolStats = getSymbolStats();
+    const tbody = document.getElementById('symbolTbody');
+    tbody.innerHTML = '';
+
+    symbolStats.forEach((stat, index) => {
+        const row = document.createElement('tr');
+        row.className = 'symbol-row';
+        row.setAttribute('data-symbol', stat.symbol);
+        row.innerHTML = `
+            <td style="font-weight:600;">${index + 1}</td>
+            <td><span class="symbol-name"><span class="toggle-icon">▶</span> ${stat.symbol}</span></td>
+            <td>${stat.totalTrades}</td>
+            <td style="color: ${stat.winRate >= 50 ? '#1e8044' : '#c23a2e'};">${stat.winRate}%</td>
+            <td class="${stat.totalPnl >= 0 ? 'positive' : 'negative'}" style="font-weight:700;">${stat.totalPnl > 0 ? '+' : ''}${stat.totalPnl.toFixed(2)}</td>
+            <td class="${stat.avgPnl >= 0 ? 'positive' : 'negative'}">${stat.avgPnl > 0 ? '+' : ''}${stat.avgPnl.toFixed(2)}</td>
+        `;
+        tbody.appendChild(row);
+
+        // 详情行
+        const detailRow = document.createElement('tr');
+        detailRow.id = `detail-${stat.symbol}`;
+        detailRow.className = 'trades-detail';
+        detailRow.style.display = 'none';
+        detailRow.innerHTML = `<td colspan="6" style="padding: 16px 24px;"></td>`;
+        tbody.appendChild(detailRow);
+    });
+
+    // 点击事件
+    window.toggleDetail = function(symbol) {
+        const detailRow = document.getElementById(`detail-${symbol}`);
+        if (!detailRow) return;
+
+        document.querySelectorAll('.toggle-icon').forEach(icon => icon.textContent = '▶');
+
+        if (detailRow.style.display === 'none') {
+            if (!detailRow._loaded) {
+                const stat = symbolStats.find(s => s.symbol === symbol);
+                if (stat) {
+                    let html = `<div style="background: white; border-radius: 16px; padding: 6px 0;"><table class="detail-table" style="width:100%;"><thead><tr><th>方向</th><th>开仓时间</th><th>平仓时间</th><th>开仓价</th><th>平仓价</th><th>持仓(分)</th><th>盈亏(USDT)</th></tr></thead><tbody>`;
+
+                    stat.trades.forEach(t => {
+                        const dirClass = t[2] === '多' ? 'positive' : 'negative';
+                        const pnlClass = t[7] > 0 ? 'positive' : (t[7] < 0 ? 'negative' : '');
+                        const openPrice = t[5] > 1 ? t[5].toFixed(2) : t[5].toFixed(6);
+                        const closePrice = t[6] > 1 ? t[6].toFixed(2) : t[6].toFixed(6);
+
+                        html += `<tr>
+                            <td><span class="${dirClass}" style="font-weight:600;">${t[2]}</span></td>
+                            <td>${t[3]}</td>
+                            <td>${t[4]}</td>
+                            <td>${openPrice}</td>
+                            <td>${closePrice}</td>
+                            <td>${t[8].toFixed(1)}</td>
+                            <td class="${pnlClass}">${t[7] > 0 ? '+' : ''}${t[7].toFixed(2)}</td>
+                        </tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                    detailRow.cells[0].innerHTML = html;
+                    detailRow._loaded = true;
+                }
+            }
+            detailRow.style.display = 'table-row';
+            const currentRow = document.querySelector(`.symbol-row[data-symbol="${symbol}"] .toggle-icon`);
+            if (currentRow) currentRow.textContent = '▼';
+        } else {
+            detailRow.style.display = 'none';
+            const currentRow = document.querySelector(`.symbol-row[data-symbol="${symbol}"] .toggle-icon`);
+            if (currentRow) currentRow.textContent = '▶';
+        }
+    };
+
+    document.querySelectorAll('.symbol-row').forEach(row => {
+        const symbol = row.dataset.symbol;
+        row.onclick = () => window.toggleDetail(symbol);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.trades-detail').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.toggle-icon').forEach(icon => icon.textContent = '▶');
+        }
+    });
+});
+</script>
+</body>
+</html>

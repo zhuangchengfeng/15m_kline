@@ -8,7 +8,7 @@ config_logging(logging, logging.INFO)
 
 
 
-def gpn():
+def xxt():
     try:
 
         proxies = {
@@ -36,4 +36,4 @@ def gpn():
 
 if __name__ == '__main__':
 
-    gpn()
+    xxt()
