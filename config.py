@@ -117,7 +117,7 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['1h', '5m']
+    KLINE_INTERVAL = ['1d','4h','1h','15m']
     MIN_VOLUME = 20000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG', 'SHORT']
@@ -136,8 +136,8 @@ class Config:
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
     PROXY_D = {"http": 'http://127.0.0.1:7890', "https": 'http://127.0.0.1:7890'}
-    KLINE_LIMIT = 499  # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
-    KLINE_LIMIT_UPDATE = 10  # 增量更新最小K线  节省流量
+    KLINE_LIMIT = 200  # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
+    KLINE_LIMIT_UPDATE = 2  # 增量更新最小K线  节省流量
     DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
     UTC_TZ = timezone.utc
     BEIJING_TZ = timezone(timedelta(hours=8))

@@ -330,8 +330,9 @@ class AsyncReporter:
         """测试代理连接是否正常"""
         test_url = "https://api.binance.com/api/v3/ping"
         try:
+            print(2)
             session = await self.get_session()
-
+            print(1)
             async with session.get(test_url, proxy=self.proxy, timeout=5) as response:
                 if response.status == 200:
                     print("✅ 代理连接成功！")
@@ -344,7 +345,7 @@ class AsyncReporter:
             return False
 
 
-def main():
+def main(json_file_name):
     """同步主函数"""
     # 设置Windows事件循环策略
     if sys.platform == 'win32':
@@ -358,11 +359,9 @@ def main():
     try:
         reporter = AsyncReporter()
 
-        print("测试代理连接...")
         loop.run_until_complete(reporter.test_proxy_connection())
-        print()
 
-        json_file = "2026-03-01.json"
+        json_file = json_file_name
         loop.run_until_complete(reporter.analyze_json_file_async(json_file))
 
     except KeyboardInterrupt:
@@ -399,4 +398,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    file = '2026-03-05.json'
+    main(file)

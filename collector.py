@@ -9,6 +9,7 @@ import os
 from typing import Optional, Dict, List
 import pandas as pd
 from config import Config
+import config as cf
 
 logger = logging.getLogger(__name__)
 
@@ -290,6 +291,8 @@ class BinanceKlineCollector:
         """
 
         # 如果不是首次扫描且启用了缓存，使用增量更新
+        if cf.INTERVAL_TO_MIN.get(interval,15) >= 239:
+            limit = 5
         if use_cache and self.first_scan_done:
             # 增量获取时，只需要获取少量新数据
             fetch_limit = min(Config.KLINE_LIMIT_UPDATE, limit)  # 最多获取条新数据
@@ -405,9 +408,9 @@ class BinanceKlineCollector:
         url = 'https://fapi.binance.com/fapi/v1/klines'
         params = {'symbol': symbol, 'interval': interval, 'limit': fetch_limit}
 
-        result = await self._make_request_with_retry(url, params, max_retries)
+        result = await self._make_request_with_retry(url, params, 5)
         if result is None:
-            logger.warning(f"{symbol} 增量获取失败，返回None数据")
+            logger.warning(f"{symbol} 增量获取失败，返回None数据,{interval}周期")
             return None
 
         response_text, data = result

@@ -255,15 +255,15 @@ class TradingSignalBot:
                     if has_signal[0]:
                         n = signal_d.get(result['symbol'])[0] + has_signal[0]
                         signal_d.update({result['symbol']: [n, result]})
-                        self.sound_d.update({result['symbol']: has_signal[1]})
-
         count = len(self.config.KLINE_INTERVAL)
-        for k, v in signal_d.items():
+        for k, v in signal_d.items():    # k == result['symbol']->str  v == [signal_n,result]->list
             if v[0] >= count or v[0] <= -count:
                 if v[0] >=count:
                     position_side = 'L'
+                    self.sound_d.update({k: '做多'})
                 else:
                     position_side = 'S'
+                    self.sound_d.update({k: '做空'})
                 self.recorder(result=v[1],position_side=position_side, record_signal=self.config.RECORDER_AVAILABLE)
                 if '\u4e00' <= k <= '\u9fff':
                     logger.debug(f'已删除中文品种{k}')
