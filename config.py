@@ -95,7 +95,7 @@ class Config:
 
     try:
         from signal_recorder import SignalRecorder
-        AFTER_TIME_HOUR = 2
+        AFTER_TIME_HOUR = 8
         signal_recorder = SignalRecorder(hour=AFTER_TIME_HOUR)
         RECORDER_AVAILABLE = True
         RECORDER_LOGGER = False
@@ -117,7 +117,7 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['1d','4h','1h','15m']
+    KLINE_INTERVAL = ['1h']
     MIN_VOLUME = 20000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG', 'SHORT']
@@ -136,8 +136,8 @@ class Config:
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
     PROXY_D = {"http": 'http://127.0.0.1:7890', "https": 'http://127.0.0.1:7890'}
-    KLINE_LIMIT = 200  # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
-    KLINE_LIMIT_UPDATE = 2  # 增量更新最小K线  节省流量
+    KLINE_LIMIT = 99  # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
+    KLINE_LIMIT_UPDATE = 6  # 增量更新最小K线  节省流量
     DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
     UTC_TZ = timezone.utc
     BEIJING_TZ = timezone(timedelta(hours=8))
@@ -147,14 +147,16 @@ class Config:
         key=lambda x: INTERVAL_TO_MIN.get(x, 0),
         reverse=True
     )
-
-    SCAN_SECOND_DELAY = [4, 5, 6]  # 扫描时间点（秒） list or int type
+    M1 = False
+    if '1m' not in KLINE_INTERVAL and M1 == True:
+        KLINE_INTERVAL_SORT.append('1m')
+    SCAN_SECOND_DELAY = range(3,9)  # 扫描时间点（秒） list or int type
     SCAN_INTERVALS = interval_divide().get(KLINE_INTERVAL_SORT[-1])
-
     EMA_ATR_INFO = False
     PLAY_SOUND = True
     API_KEY_SECRET_FILE_PATH = "H:\交易经验\l.txt"  # save your bn key and secret .txt  double lines
-    TARGET = round(100000 / 7, 0)  # 你的目标本金,your point USDT in the future
+    TARGET = round(228000 / 7, 0)  # 你 的目标本金￥CNY,your point USDT in the future
     RATIO = 1.2
     SAVE_DISK = False
     SCAN_ON_START = True
+

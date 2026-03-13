@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from config import Config
 from ema_atr_manager import EmaAtrManager
 import config as cf
+import structure
 
 ema_atr = EmaAtrManager()
 logger = logging.getLogger(__name__)
@@ -14,7 +15,6 @@ UTC_TZ = timezone.utc
 
 import pandas as pd
 import numpy as np
-
 
 
 def detect_signal(interval_check, result: dict) -> tuple:
@@ -55,54 +55,25 @@ def detect_signal(interval_check, result: dict) -> tuple:
     def volume_power(x):
         return latest['volume'] >= (prev['volume'] * x)
 
+    rsi = lambda length: structure.calculate_rsi(kline_data=kline_data, position=-length)
 
     if 'LONG' in Config.POSITION_SIDE:
         if interval_check == '1h':
-            close_prices = kline_data['close'].astype(float).tolist()
-            ema60 = ema_atr.calculate_ema(prices=close_prices, period=60)[-2]
+            # close_prices = kline_data['close'].astype(float).tolist()
+            # ema12 = ema_atr.calculate_ema(prices=close_prices, period=12)[-2]
             red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            # if (red_green) and latest['open'] > ema60 or (red_green and latest['open'] < ema60 and price_power(2)):
-            if latest['open'] > ema60 or (red_green and latest['open'] < ema60 and price_power(2)):
+            if (red_green and price_power(1.1) and rsi(3) < 40) or (
+                    structure.is_morning_star(kline_data) and rsi(4) <= 30):
                 has_signal = (1, '做多')
-        if interval_check == '15m':
-            close_prices = kline_data['close'].astype(float).tolist()
-            ema60 = ema_atr.calculate_ema(prices=close_prices, period=60)[-2]
-            red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            if red_green and (latest['open'] > ema60/(latest['close']/latest['open'])) and price_power(1):
-                has_signal = (1, '做多')
-        if interval_check == '1d':
-            if current['close'] > current['open']:
-                has_signal = (1, '做多')
-        if interval_check == '4h':
-            if current['close'] > current['open']:
-                has_signal = (1, '做多')
-            red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            if red_green and price_power(1):
-                has_signal = (len(Config.KLINE_INTERVAL_SORT)-1, '做多')
+
     if 'SHORT' in Config.POSITION_SIDE:
         if interval_check == '1h':
-            close_prices = kline_data['close'].astype(float).tolist()
-            ema60 = ema_atr.calculate_ema(prices=close_prices, period=60)[-2]
+            # close_prices = kline_data['close'].astype(float).tolist()
+            # ema12 = ema_atr.calculate_ema(prices=close_prices, period=12)[-2]
             red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
-            # if (red_green) and latest['open'] < ema60 or (red_green and latest['open'] > ema60 and price_power(2)):
-            if latest['open'] < ema60 or (red_green and latest['open'] > ema60 and price_power(2)):
+            if (red_green and price_power(1.1) and rsi(3) > 75) or (structure.is_evening_star(kline_data) and rsi(4) >= 75):
                 has_signal = (-1, '做空')
-        if interval_check == '15m':
-            close_prices = kline_data['close'].astype(float).tolist()
-            ema60 = ema_atr.calculate_ema(prices=close_prices, period=60)[-2]
-            red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
-            if red_green and (latest['open'] < ema60/(latest['close']/latest['open'])) and price_power(1):
-                has_signal = (-1, '做空')
-        if interval_check == '1d':
-            if current['close'] < current['open']:
-                has_signal = (-1, '做空')
-        if interval_check == '4h':
-            if current['close'] < current['open']:
-                has_signal = (-1, '做空')
-            red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
 
-            if red_green and price_power(1.1):
-                has_signal = (-len(Config.KLINE_INTERVAL_SORT)+1, '做空')
     return has_signal
 
 

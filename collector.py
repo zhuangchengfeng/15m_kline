@@ -292,7 +292,7 @@ class BinanceKlineCollector:
 
         # 如果不是首次扫描且启用了缓存，使用增量更新
         if cf.INTERVAL_TO_MIN.get(interval,15) >= 239:
-            limit = 5
+            limit = 30
         if use_cache and self.first_scan_done:
             # 增量获取时，只需要获取少量新数据
             fetch_limit = min(Config.KLINE_LIMIT_UPDATE, limit)  # 最多获取条新数据

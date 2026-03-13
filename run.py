@@ -152,9 +152,12 @@ class TradingSignalBot:
         if self.is_scanning:
             return False
 
-        # 避免重复扫描（按分钟，不是按秒）
-        if self.last_scan_time and now.minute == self.last_scan_time.minute:
-            return False
+        # 避免重复扫描（按秒）
+        if self.last_scan_time:
+            time_diff = (now - self.last_scan_time).total_seconds()
+            if time_diff < 60:  # 60秒内不重复扫描
+                return False
+
         if isinstance(self.config.SCAN_SECOND_DELAY, list):
             if now.second not in self.config.SCAN_SECOND_DELAY:
                 return False

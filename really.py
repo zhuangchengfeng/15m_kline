@@ -23,8 +23,11 @@ def xxt():
 
         response = rsa_client.account(recvWindow=4000)
         wallet_balance = float(response['totalWalletBalance'])
-        result = math.log(Config.TARGET / wallet_balance) / math.log(Config.RATIO)
-        return round(result,0)
+        if wallet_balance !=0:
+            result = math.log(Config.TARGET / wallet_balance) / math.log(Config.RATIO)
+            return round(result,0)
+        else:
+            return 0
         # logging.info(response)
     #
     except ClientError as error:
