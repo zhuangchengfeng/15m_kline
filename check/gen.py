@@ -1,20 +1,29 @@
 import re
 from datetime import datetime
 import json
+import os
 
+# 定义一个交易唯一标识的函数（用于去重）
+def trade_signature(trade_data):
+    """根据交易关键字段生成唯一签名"""
+    # trade_data 是解析过程中收集的中间数据，包含 symbol, direction, open_time_str, open_price, close_price 等
+    # 这里我们使用从原始块中提取的字段，因为解析函数中已经提取了这些信息
+    # 为了通用，我们在解析时生成签名
+    return None  # 实际在 parse_trades_from_txt 中生成
 
 def parse_trades_from_txt(file_path):
     """
-    从me15.txt解析交易记录，返回交易列表
-    每个交易格式: [品种, 杠杆, 方向, 开仓时间, 平仓时间, 开仓价, 平仓价, 盈亏USDT, 持仓分钟]
+    从me15.txt解析交易记录，返回交易列表（已去重）
+    每个交易格式: [品种, 杠杆, 方向, 开仓时间, 平仓时间, 开仓价, 平仓价, 盈亏USDT, 持仓分钟, 开仓完整时间, 收益率, 开仓总金额]
     """
-
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
     # 按空行分割每个交易块
     blocks = re.split(r'\n\s*\n', content.strip())
     trades = []
+    trade_blocks_for_sort = []
+    seen_signatures = set()   # 用于去重
 
     for block in blocks:
         if not block.strip():
@@ -25,38 +34,48 @@ def parse_trades_from_txt(file_path):
             continue
 
         try:
-            # 品种
             symbol = lines[0]
-
-            # 杠杆 (保留用于解析，但后续聚合时忽略)
             leverage = lines[2]
-
-            # 方向
             direction_line = lines[3]
             direction = '多' if '做多' in direction_line else '空'
 
-            # 开仓时间
             open_time_line = [l for l in lines if '开仓时间' in l and '最后' not in l][0]
             open_time_str = open_time_line.replace('开仓时间', '').strip()
 
-            # 平仓时间
             close_time_line = [l for l in lines if '最后平仓时间' in l][0]
             close_time_str = close_time_line.replace('最后平仓时间', '').strip()
 
-            # 盈亏
             pnl_idx = lines.index('已实现盈亏 (USDT)') + 1
             pnl_raw = lines[pnl_idx].replace('USDT', '').replace('+', '').replace(',', '').strip()
             pnl = float(pnl_raw) if '-' not in pnl_raw else -float(pnl_raw.replace('-', ''))
 
-            # 开仓价
+            # 收益率解析（处理 -- 的情况）
+            ret_idx = lines.index('收益率') + 1
+            ret_raw = lines[ret_idx].replace('%', '').replace('+', '').replace(',', '').strip()
+            # 如果收益率是 "--" 或其他非数字，设置为 0
+            if ret_raw == '' or ret_raw == '--' or ret_raw == '-':
+                ret = 0.0
+            else:
+                try:
+                    ret = float(ret_raw)
+                except ValueError:
+                    ret = 0.0
+
             open_price_idx = lines.index('开仓价格') + 1
             open_price = float(lines[open_price_idx].replace(',', ''))
 
-            # 平仓价
             close_price_idx = lines.index('平仓均价') + 1
             close_price = float(lines[close_price_idx].replace(',', ''))
 
-            # 持仓时间计算
+            # 获取已平仓量
+            amount = 0
+            for i, line in enumerate(lines):
+                if '已平仓量' in line:
+                    amount_str = lines[i + 1].split(' ')[0].replace(',', '')
+                    amount = float(amount_str)
+                    break
+            total_amount = amount * open_price
+
             def parse_datetime(dt_str):
                 parts = dt_str.split(' ')
                 date_part = parts[0]
@@ -69,79 +88,156 @@ def parse_trades_from_txt(file_path):
             hold_minutes = (close_dt - open_dt).total_seconds() / 60
             hold_minutes = round(hold_minutes, 1)
 
-            # 格式化为前端需要的简洁时间格式 (月/日 时:分)
             open_time_short = f"{open_time_str.split(' ')[0][:5]} {open_time_str.split(' ')[1][:5]}"
             close_time_short = f"{close_time_str.split(' ')[0][:5]} {close_time_str.split(' ')[1][:5]}"
 
+            # 生成唯一签名（用于去重）
+            signature = f"{symbol}_{direction}_{open_time_str}_{open_price}_{close_price}"
+            if signature in seen_signatures:
+                # 重复交易，跳过
+                continue
+            seen_signatures.add(signature)
+
             trades.append([
-                symbol,  # 0: 品种
-                leverage,  # 1: 杠杆
-                direction,  # 2: 方向
+                symbol,           # 0: 品种
+                leverage,         # 1: 杠杆
+                direction,        # 2: 方向
                 open_time_short,  # 3: 开仓时间
-                close_time_short,  # 4: 平仓时间
-                open_price,  # 5: 开仓价
-                close_price,  # 6: 平仓价
-                pnl,  # 7: 盈亏
-                hold_minutes  # 8: 持仓分钟
+                close_time_short, # 4: 平仓时间
+                open_price,       # 5: 开仓价
+                close_price,      # 6: 平仓价
+                pnl,              # 7: 盈亏
+                hold_minutes,     # 8: 持仓分钟
+                open_dt,          # 9: 完整开仓时间(用于排序)
+                ret,              # 10: 收益率
+                total_amount      # 11: 开仓总金额
             ])
 
+            trade_blocks_for_sort.append((open_dt, block))
+
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"解析块时出错: {e}")
             continue
 
-    return trades
+    return trades, trade_blocks_for_sort
 
 
-def generate_js_file(trades, output_path='trades_data.js'):
-    """
-    生成包含交易数据的JS文件，内部交易按亏损最多在前排序
-    """
-    # 1. 按品种分组
+def sort_txt_by_open_time(file_path):
+    """按开仓时间排序txt文件，最新的在底部（同时去重）"""
+    trades, trade_blocks = parse_trades_from_txt(file_path)
+    # 按开仓时间排序
+    trade_blocks.sort(key=lambda x: x[0])
+    # 写入去重后的块
+    with open(file_path, 'w', encoding='utf-8') as f:
+        for i, (_, block) in enumerate(trade_blocks):
+            f.write(block)
+            if i < len(trade_blocks) - 1:
+                f.write('\n\n')
+    print(f"✅ TXT文件已去重并按开仓时间排序（最新的在底部）")
+    return len(trade_blocks)
+
+
+def generate_js_file(trades, output_path='static/trades_data.js'):
+    """生成包含交易数据的JS文件"""
+    os.makedirs('static', exist_ok=True)
+
+    # 按开仓时间排序
+    trades_sorted = sorted(trades, key=lambda x: x[9])
+
+    # 按品种分组
     symbol_groups = {}
-    for t in trades:
+    for t in trades_sorted:
         symbol = t[0]
         if symbol not in symbol_groups:
             symbol_groups[symbol] = []
         symbol_groups[symbol].append(t)
 
-    # 2. 对每个品种的内部交易进行排序：亏损最多在前
+    # 每个品种内部排序：亏损最多在前
     for symbol in symbol_groups:
-        # 排序key:
-        # - 亏损交易排前面 (pnl < 0)
-        # - 亏损交易按金额升序（-100, -50, -10）
-        # - 盈利交易按金额降序（+100, +50, +10）
         symbol_groups[symbol].sort(key=lambda x: (
-            0 if x[7] < 0 else 1,  # 亏损在前(0)，盈利在后(1)
-            x[7] if x[7] < 0 else -x[7]  # 亏损：越小越靠前；盈利：越大越靠前
+            0 if x[7] < 0 else 1,
+            x[7] if x[7] < 0 else -x[7]
         ))
 
-    # 3. 重新组合成单个数组（按品种顺序）
-    final_trades = []
+    # 按品种顺序组合
+    final_trades_by_symbol = []
     for symbol in sorted(symbol_groups.keys()):
-        final_trades.extend(symbol_groups[symbol])
+        final_trades_by_symbol.extend(symbol_groups[symbol])
 
-    # 4. 生成JS文件
+    # 清理 datetime 对象，转换为字符串
+    def clean_trade(t):
+        cleaned = list(t)
+        if isinstance(cleaned[9], datetime):
+            cleaned[9] = cleaned[9].strftime('%Y-%m-%d %H:%M:%S')
+        return cleaned
+
+    # 保留前12个字段（包括总金额），去掉杠杆字段（索引1）
+    # 按品种分组的数据
+    final_trades_clean = []
+    for t in final_trades_by_symbol:
+        cleaned = clean_trade(t)
+        final_trades_clean.append([
+            cleaned[0], cleaned[2], cleaned[3], cleaned[4],
+            cleaned[5], cleaned[6], cleaned[7], cleaned[8],
+            cleaned[10], cleaned[11],
+            cleaned[9]  # 添加完整日期
+        ])
+
+    # 按时间顺序（最新的在前）
+    time_sorted_trades = sorted(trades_sorted, key=lambda x: x[9], reverse=True)
+    time_sorted_clean = []
+    for t in time_sorted_trades:
+        cleaned = clean_trade(t)
+        # 数据格式: [品种, 方向, 开仓时间, 平仓时间, 开仓价, 平仓价, 盈亏, 持仓分钟, 收益率, 开仓总金额, 完整开仓日期]
+        time_sorted_clean.append([
+            cleaned[0],  # 品种
+            cleaned[2],  # 方向
+            cleaned[3],  # 开仓时间（简短）
+            cleaned[4],  # 平仓时间（简短）
+            cleaned[5],  # 开仓价
+            cleaned[6],  # 平仓价
+            cleaned[7],  # 盈亏
+            cleaned[8],  # 持仓分钟
+            cleaned[10],  # 收益率
+            cleaned[11],  # 开仓总金额
+            cleaned[9]  # 完整开仓时间 (YYYY-MM-DD HH:MM:SS)
+        ])
+
     js_content = f"""// 从me15.txt自动生成的交易数据
 // 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 // 总交易笔数: {len(trades)}
 // 涉及品种数: {len(symbol_groups)}
-// ★★★ 重要: 每个品种的内部交易已按亏损最多在前排序 ★★★
 
-const TRADES = {json.dumps(final_trades, indent=2, ensure_ascii=False)};
+// 数据格式: [品种, 方向, 开仓时间, 平仓时间, 开仓价, 平仓价, 盈亏, 持仓分钟, 收益率, 开仓总金额]
+
+// 按品种分组的数据（每个品种内亏损最多在前）
+const TRADES_BY_SYMBOL = {json.dumps(final_trades_clean, indent=2, ensure_ascii=False)};
+
+// 按时间顺序的数据（最新的在前）
+const TRADES_BY_TIME = {json.dumps(time_sorted_clean, indent=2, ensure_ascii=False)};
+
+// 获取所有交易（默认按品种分组）
+function getAllTrades() {{
+    return TRADES_BY_SYMBOL;
+}}
 
 // 按品种聚合的统计数据
 function getSymbolStats() {{
     const symbolMap = new Map();
 
-    TRADES.forEach(t => {{
+    TRADES_BY_SYMBOL.forEach(t => {{
         const symbol = t[0];
-        const pnl = t[7];
+        const pnl = t[6];
+        const totalAmount = t[9];
 
         if (!symbolMap.has(symbol)) {{
             symbolMap.set(symbol, {{
                 symbol: symbol,
                 trades: [],
                 totalPnl: 0,
+                totalAmount: 0,
                 winCount: 0,
                 lossCount: 0
             }});
@@ -150,6 +246,7 @@ function getSymbolStats() {{
         const group = symbolMap.get(symbol);
         group.trades.push(t);
         group.totalPnl += pnl;
+        group.totalAmount += totalAmount;
         if (pnl > 0) group.winCount++;
         else if (pnl < 0) group.lossCount++;
     }});
@@ -166,369 +263,103 @@ function getSymbolStats() {{
             winCount: group.winCount,
             lossCount: group.lossCount,
             totalPnl: Number(group.totalPnl.toFixed(2)),
+            totalAmount: Number(group.totalAmount.toFixed(2)),
             winRate: winRate,
             avgPnl: Number(avgPnl.toFixed(2)),
-            trades: group.trades  // 已经按亏损最多在前排序好了！
+            trades: group.trades
         }});
     }}
 
-    // 按总盈亏降序（盈利多的在前）
     return stats.sort((a, b) => b.totalPnl - a.totalPnl);
 }}
 
-// 导出全局变量
 if (typeof module !== 'undefined' && module.exports) {{
-    module.exports = {{ TRADES, getSymbolStats }};
+    module.exports = {{ TRADES_BY_SYMBOL, TRADES_BY_TIME, getSymbolStats }};
 }}
 """
-
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(js_content)
 
     print(f"✅ JS文件已生成: {output_path}")
     print(f"📊 总交易笔数: {len(trades)}")
     print(f"📊 涉及品种数: {len(symbol_groups)}")
-
-    # 5. 打印排序验证
-    print("\n" + "=" * 60)
-    print("✅ 品种内部排序验证（亏损最多在前）:")
-    print("=" * 60)
-
-    for symbol in list(symbol_groups.keys())[:3]:  # 显示前3个品种
-        trades_list = symbol_groups[symbol]
-        print(f"\n📌 {symbol} (共{len(trades_list)}笔交易):")
-        print("   " + "-" * 40)
-
-        # 显示前3笔交易
-        for i, t in enumerate(trades_list[:3]):
-            pnl = t[7]
-            direction = t[2]
-            time_str = t[3]
-            pnl_str = f"{pnl:+.2f}"
-            print(f"   {i + 1}. [{direction}] {time_str} 盈亏: {pnl_str}")
-
-        if len(trades_list) > 3:
-            print(f"   ... 还有{len(trades_list) - 3}笔交易")
-
-        # 验证排序是否正确
-        first_pnl = trades_list[0][7]
-        last_pnl = trades_list[-1][7]
-        print(f"   ✅ 第一笔盈亏: {first_pnl:+.2f} (应该是亏损最多)")
-        print(f"   ✅ 最后一笔盈亏: {last_pnl:+.2f} (应该是盈利最多)")
-
     return symbol_groups
 
 
-def generate_html_template(output_path='trading_report.html'):
+def generate_html_report(output_path='trading_report.html', dev_mode=False,file_name=''):
     """
-    生成引用外部JS文件的HTML模板
+    生成HTML报告
+    dev_mode=True: 生成引用外部CSS/JS的版本（方便调试）
+    dev_mode=False: 生成内嵌CSS/JS的版本（单文件，方便分享）
     """
-    html_content = """<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>永续合约 · 品种盈亏总览</title>
-    <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            line-height: 1.5;
-            margin: 0;
-            padding: 24px;
-            background: #f6f8fc;
-            color: #0a1e2f;
-        }
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 24px;
-            padding: 28px 32px;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.03);
-        }
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: #0c2b4b;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .subhead {
-            color: #506680;
-            margin-bottom: 28px;
-            border-bottom: 2px solid #eef2f7;
-            padding-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.92rem;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 36px;
-        }
-        .stat-card {
-            background: #f2f6fd;
-            border-radius: 18px;
-            padding: 18px 20px;
-            border: 1px solid #e5ebf5;
-        }
-        .stat-card h3 {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #4c6682;
-            margin: 0 0 8px 0;
-            font-weight: 600;
-        }
-        .stat-card .value {
-            font-size: 1.9rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-        .positive { color: #1e8044; }
-        .negative { color: #c23a2e; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-        th {
-            background: #f0f5fc;
-            color: #1e3a5f;
-            font-weight: 600;
-            padding: 16px 12px;
-            text-align: right;
-            border-bottom: 1px solid #dce3ec;
-        }
-        th:first-child { text-align: left; padding-left: 20px; }
-        td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #f0f3f8;
-            text-align: right;
-        }
-        td:first-child { text-align: left; padding-left: 20px; }
-        .symbol-row {
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-        .symbol-row:hover { background: #f2f8ff; }
-        .symbol-name {
-            font-weight: 700;
-            color: #0a2647;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .toggle-icon {
-            color: #5c7b9c;
-            font-size: 0.75rem;
-            display: inline-block;
-            width: 18px;
-        }
-        .trades-detail {
-            background: #fafdff;
-            border-bottom: 2px solid #e9f0f7;
-        }
-        .trades-detail td { padding: 0; }
-        .detail-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            box-shadow: inset 0 1px 4px rgba(0,0,0,0.02);
-        }
-        .detail-table th {
-            background: #f4f9fe;
-            font-size: 0.7rem;
-            padding: 10px 8px;
-            color: #385073;
-        }
-        .detail-table td {
-            padding: 10px 8px;
-            font-size: 0.75rem;
-            border-bottom: 1px solid #e7ecf2;
-        }
-        .footer-note {
-            margin-top: 30px;
-            text-align: right;
-            color: #60758b;
-            font-size: 0.75rem;
-            border-top: 1px solid #e6ecf2;
-            padding-top: 20px;
-        }
-        .win { color: #1e8044; }
-        .loss { color: #c23a2e; }
-    </style>
-    <script src="trades_data.js"></script>
-</head>
-<body>
-<div class="container">
-    <h1>📊 品种盈亏排行 · 永续全仓</h1>
-    <div class="subhead">
-        <span>数据源: me15.txt · 自动解析生成</span>
-        <span>生成时间: <span id="generateTime"></span></span>
-    </div>
+    with open('templates/index.html', 'r', encoding='utf-8') as f:
+        html_content = f.read()
 
-    <div class="summary-grid" id="summaryCards"></div>
-
-    <h2 style="font-size:1.4rem; margin: 32px 0 16px;">📌 按品种汇总 · 点击查看详情</h2>
-    <table id="symbolTable">
-        <thead>
-            <tr>
-                <th>排名</th>
-                <th>品种</th>
-                <th>交易笔数</th>
-                <th>胜率</th>
-                <th>总盈亏 (USDT)</th>
-                <th>平均盈亏</th>
-            </tr>
-        </thead>
-        <tbody id="symbolTbody"></tbody>
-    </table>
-    <div class="footer-note">
-        ⚡ 点击品种行展开/收起该品种所有交易明细 · 按总盈亏从高到低排序
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof TRADES === 'undefined') {
-        console.error('错误: 未找到TRADES数据');
-        return;
-    }
-
-    document.getElementById('generateTime').textContent = new Date().toLocaleString('zh-CN');
-
-    // 计算总体统计
-    const totalTrades = TRADES.length;
-    const profitTrades = TRADES.filter(t => t[7] > 0).length;
-    const lossTrades = TRADES.filter(t => t[7] < 0).length;
-    const totalPnl = TRADES.reduce((sum, t) => sum + t[7], 0);
-
-    document.getElementById('summaryCards').innerHTML = `
-        <div class="stat-card"><h3>总交易笔数</h3><div class="value" style="font-size:1.8rem;">${totalTrades}</div></div>
-        <div class="stat-card"><h3>盈利笔数</h3><div class="value positive">${profitTrades}</div></div>
-        <div class="stat-card"><h3>亏损笔数</h3><div class="value negative">${lossTrades}</div></div>
-        <div class="stat-card"><h3>总盈亏 (USDT)</h3><div class="value ${totalPnl >= 0 ? 'positive' : 'negative'}" style="font-size:1.8rem;">${totalPnl > 0 ? '+' : ''}${totalPnl.toFixed(2)}</div></div>
-    `;
-
-    const symbolStats = getSymbolStats();
-    const tbody = document.getElementById('symbolTbody');
-    tbody.innerHTML = '';
-
-    symbolStats.forEach((stat, index) => {
-        const row = document.createElement('tr');
-        row.className = 'symbol-row';
-        row.setAttribute('data-symbol', stat.symbol);
-        row.innerHTML = `
-            <td style="font-weight:600;">${index + 1}</td>
-            <td><span class="symbol-name"><span class="toggle-icon">▶</span> ${stat.symbol}</span></td>
-            <td>${stat.totalTrades}</td>
-            <td style="color: ${stat.winRate >= 50 ? '#1e8044' : '#c23a2e'};">${stat.winRate}%</td>
-            <td class="${stat.totalPnl >= 0 ? 'positive' : 'negative'}" style="font-weight:700;">${stat.totalPnl > 0 ? '+' : ''}${stat.totalPnl.toFixed(2)}</td>
-            <td class="${stat.avgPnl >= 0 ? 'positive' : 'negative'}">${stat.avgPnl > 0 ? '+' : ''}${stat.avgPnl.toFixed(2)}</td>
-        `;
-        tbody.appendChild(row);
-
-        // 详情行
-        const detailRow = document.createElement('tr');
-        detailRow.id = `detail-${stat.symbol}`;
-        detailRow.className = 'trades-detail';
-        detailRow.style.display = 'none';
-        detailRow.innerHTML = `<td colspan="6" style="padding: 16px 24px;"></td>`;
-        tbody.appendChild(detailRow);
-    });
-
-    // 点击事件
-    window.toggleDetail = function(symbol) {
-        const detailRow = document.getElementById(`detail-${symbol}`);
-        if (!detailRow) return;
-
-        document.querySelectorAll('.toggle-icon').forEach(icon => icon.textContent = '▶');
-
-        if (detailRow.style.display === 'none') {
-            if (!detailRow._loaded) {
-                const stat = symbolStats.find(s => s.symbol === symbol);
-                if (stat) {
-                    let html = `<div style="background: white; border-radius: 16px; padding: 6px 0;"><table class="detail-table" style="width:100%;"><thead><tr><th>方向</th><th>开仓时间</th><th>平仓时间</th><th>开仓价</th><th>平仓价</th><th>持仓(分)</th><th>盈亏(USDT)</th></tr></thead><tbody>`;
-
-                    stat.trades.forEach(t => {
-                        const dirClass = t[2] === '多' ? 'positive' : 'negative';
-                        const pnlClass = t[7] > 0 ? 'positive' : (t[7] < 0 ? 'negative' : '');
-                        const openPrice = t[5] > 1 ? t[5].toFixed(2) : t[5].toFixed(6);
-                        const closePrice = t[6] > 1 ? t[6].toFixed(2) : t[6].toFixed(6);
-
-                        html += `<tr>
-                            <td><span class="${dirClass}" style="font-weight:600;">${t[2]}</span></td>
-                            <td>${t[3]}</td>
-                            <td>${t[4]}</td>
-                            <td>${openPrice}</td>
-                            <td>${closePrice}</td>
-                            <td>${t[8].toFixed(1)}</td>
-                            <td class="${pnlClass}">${t[7] > 0 ? '+' : ''}${t[7].toFixed(2)}</td>
-                        </tr>`;
-                    });
-                    html += `</tbody></table></div>`;
-                    detailRow.cells[0].innerHTML = html;
-                    detailRow._loaded = true;
-                }
-            }
-            detailRow.style.display = 'table-row';
-            const currentRow = document.querySelector(`.symbol-row[data-symbol="${symbol}"] .toggle-icon`);
-            if (currentRow) currentRow.textContent = '▼';
-        } else {
-            detailRow.style.display = 'none';
-            const currentRow = document.querySelector(`.symbol-row[data-symbol="${symbol}"] .toggle-icon`);
-            if (currentRow) currentRow.textContent = '▶';
-        }
-    };
-
-    document.querySelectorAll('.symbol-row').forEach(row => {
-        const symbol = row.dataset.symbol;
-        row.onclick = () => window.toggleDetail(symbol);
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.trades-detail').forEach(d => d.style.display = 'none');
-            document.querySelectorAll('.toggle-icon').forEach(icon => icon.textContent = '▶');
-        }
-    });
-});
-</script>
-</body>
-</html>
-"""
-
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-
-    print(f"✅ HTML模板已生成: {output_path}")
+    if dev_mode:
+        html_content = html_content.replace(
+            '<link rel="stylesheet" href="style.css">',
+            '<link rel="stylesheet" href="templates/style.css">'
+        ).replace(
+            '<script src="app.js"></script>',
+            '<script src="templates/app.js"></script>'
+        ).replace(
+            '<script src="../static/trades_data.js"></script>',
+            f'<script src="static/trades_data{file_name}.js"></script>'
+        )
+        # 开发版文件名加 _dev
+        if output_path.endswith('.html'):
+            dev_path = output_path.replace('.html', '_dev.html')
+        else:
+            dev_path = output_path + '_dev.html'
+        with open(dev_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        print(f"✅ 开发版HTML已生成: {dev_path}")
+    else:
+        with open('templates/style.css', 'r', encoding='utf-8') as f:
+            css_content = f.read()
+        with open('templates/app.js', 'r', encoding='utf-8') as f:
+            js_content = f.read()
+        final_html = html_content.replace(
+            '<link rel="stylesheet" href="style.css">',
+            f'<style>\n{css_content}\n</style>'
+        ).replace(
+            '<script src="app.js"></script>',
+            f'<script>\n{js_content}\n</script>'
+        ).replace(
+            '<script src="../static/trades_data.js"></script>',
+            f'<script src="static/trades_data{file_name}.js"></script>'
+        )
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(final_html)
+        print(f"✅ 生产版HTML已生成: {output_path} (内嵌CSS/JS，单文件)")
 
 
 # 主程序
 if __name__ == "__main__":
-    # 1. 解析交易数据
-    trades = parse_trades_from_txt('me15.txt')
+    for i in ['me15.txt','B_converted_to_me15.txt','C_converted_to_me15.txt','D_converted_to_me15.txt']:
+        txt_path = i
+        if not os.path.exists(txt_path):
+            print(f"❌ 找不到文件: {txt_path}")
+            exit(1)
 
-    # 2. 生成JS数据文件（内部交易已排序）
-    symbol_groups = generate_js_file(trades, 'trades_data.js')
+        # 1. 排序并去重txt文件
+        total_trades = sort_txt_by_open_time(txt_path)
+        print(f"📊 TXT文件排序完成，共{total_trades}笔交易")
 
-    # 3. 生成HTML报告
-    generate_html_template('trading_report.html')
+        # 2. 解析交易数据（去重后）
+        trades, _ = parse_trades_from_txt(txt_path)
 
-    print("\n" + "=" * 60)
-    print("🎉 完成！生成的文件：")
-    print("   📁 trades_data.js    - 交易数据（已按亏损最多在前排序）")
-    print("   📁 trading_report.html - 交易报告")
-    print("\n👉 直接双击打开 trading_report.html 即可查看")
-    print("=" * 60)
+        # 3. 找出最新开仓时间（用于文件名）
+        if trades:
+            latest_dt = max(trades, key=lambda x: x[9])[9]  # x[9] 是完整开仓时间 datetime 对象
+            file_time_str = latest_dt.strftime('%Y-%m-%d')
+            base_filename = f"{file_time_str}_{i}report.html"
+        else:
+            base_filename = "report.html"
+
+        # 4. 生成JS数据文件
+        symbol_groups = generate_js_file(trades, f'static/trades_data{i}.js')
+
+        # 5. 生成两个版本的HTML（生产版和开发版）
+        # generate_html_report(base_filename, dev_mode=False)  # 生产版
+        generate_html_report(base_filename, dev_mode=True,file_name=i)   # 开发版

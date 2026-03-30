@@ -55,25 +55,24 @@ def detect_signal(interval_check, result: dict) -> tuple:
     def volume_power(x):
         return latest['volume'] >= (prev['volume'] * x)
 
-    rsi = lambda length: structure.calculate_rsi(kline_data=kline_data, position=-length)
 
     if 'LONG' in Config.POSITION_SIDE:
-        if interval_check == '1h':
-            # close_prices = kline_data['close'].astype(float).tolist()
-            # ema12 = ema_atr.calculate_ema(prices=close_prices, period=12)[-2]
+        if interval_check == '15m':
+            # red_green: 当前K线收阳，前一根K线收阴
             red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            if (red_green and price_power(1.1) and rsi(3) < 40) or (
-                    structure.is_morning_star(kline_data) and rsi(4) <= 30):
+            green_green = (latest['close'] > latest['open']) and (prev['close'] > prev['open'])
+            p = abs(latest['close']-latest['open'])/latest['open']*100
+            if (red_green and price_power(1.5) and p >=1) or (green_green and price_power(3) and p >=1):
                 has_signal = (1, '做多')
 
     if 'SHORT' in Config.POSITION_SIDE:
-        if interval_check == '1h':
-            # close_prices = kline_data['close'].astype(float).tolist()
-            # ema12 = ema_atr.calculate_ema(prices=close_prices, period=12)[-2]
+        if interval_check == '15m':
             red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
-            if (red_green and price_power(1.1) and rsi(3) > 75) or (structure.is_evening_star(kline_data) and rsi(4) >= 75):
-                has_signal = (-1, '做空')
+            red_red = (latest['close'] < latest['open']) and (prev['close'] < prev['open'])
+            p = abs(latest['close']-latest['open'])/latest['open']*100
 
+            if (red_green and price_power(2) and p>=1 ) or (red_red and price_power(3) and p >=1):
+                has_signal = (-1, '做空')
     return has_signal
 
 

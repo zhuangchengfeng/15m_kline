@@ -548,29 +548,29 @@ if __name__ == '__main__':
 
     # 配置根日志 - 设置为 WARNING 减少第三方库的干扰
     logging.basicConfig(
-        level=logging.WARNING,  # 根日志设为 WARNING，屏蔽第三方库的 DEBUG
+        level=logging.WARNING,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     local_modules = []
     for file in os.listdir('.'):
         if file.endswith('.py') and not file.startswith('__'):
-            module_name = file[:-3]  # 去掉 .py
+            module_name = file[:-3]
             local_modules.append(module_name)
 
-    # 添加 __main__
     local_modules.append('__main__')
     level = logging.DEBUG if config.SCAN_INTERVALS_DEBUG else logging.INFO
 
-    # 一键设置所有本地模块的日志级别
     for module in local_modules:
         logging.getLogger(module).setLevel(level)
 
-    # 屏蔽第三方库
     for module in ['aiohttp', 'urllib3', 'asyncio', 'binance', 'requests']:
         logging.getLogger(module).setLevel(logging.WARNING)
 
     logger = logging.getLogger(__name__)
+
+    # ========== 修改这里 ==========
     try:
         asyncio.run(main(config))
     except KeyboardInterrupt:
-        logger.info("程序已退出")
+        pass  # 什么都不做，静默退出
+    # ========== 修改结束 ==========

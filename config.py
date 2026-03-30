@@ -21,16 +21,12 @@ INTERVAL_TO_MIN = {
     '8h': 480,
     '12h': 720,
     '1d': 1440,
-    '3d': 4320,
-    '1w': 10080,
-    '1M': 43200  # 近似值
 }
 
 
 def interval_divide():
     filtered_intervals = {k: v for k, v in INTERVAL_TO_MIN.items()
-                          if v >= 1 and v <= 240}
-
+                          if v >= 1 and v <= 1440}
     schedule_rules = {}
 
     for interval, minutes in filtered_intervals.items():
@@ -117,10 +113,10 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['1h']
+    KLINE_INTERVAL = ['15m']
     MIN_VOLUME = 20000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到品种
-    POSITION_SIDE = ['LONG', 'SHORT']
+    POSITION_SIDE = ['LONG','SHORT']
     BLACK_SYMBOL_LIST = []
     #  ---------------------------------------------------------#
 
@@ -152,6 +148,7 @@ class Config:
         KLINE_INTERVAL_SORT.append('1m')
     SCAN_SECOND_DELAY = range(3,9)  # 扫描时间点（秒） list or int type
     SCAN_INTERVALS = interval_divide().get(KLINE_INTERVAL_SORT[-1])
+    print(SCAN_INTERVALS)
     EMA_ATR_INFO = False
     PLAY_SOUND = True
     API_KEY_SECRET_FILE_PATH = "H:\交易经验\l.txt"  # save your bn key and secret .txt  double lines
@@ -160,3 +157,4 @@ class Config:
     SAVE_DISK = False
     SCAN_ON_START = True
 
+Config()
