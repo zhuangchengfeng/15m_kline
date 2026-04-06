@@ -1,9 +1,45 @@
 # signal_manager.py
 import threading
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
+import pandas as pd
+# logger = logging.getLogger(__name__)
+import logging
+import colorlog
 
-logger = logging.getLogger(__name__)
+# 1. 创建一个处理器 (Handler)
+handler = logging.StreamHandler()
+
+# 2. 创建并配置一个带颜色的格式化器 (ColoredFormatter)
+#    这里我们只给整个消息(message)配置了颜色规则，你也可以按需配置更多
+formatter = colorlog.ColoredFormatter(
+    '%(asctime)s - %(levelname)s - %(message_log_color)s%(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    reset=True,
+    log_colors={
+        'INFO': 'green',      # INFO级别的日志，整行会显示为绿色
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+    },
+    secondary_log_colors={
+        'message': {          # 为消息内容(message)单独设置颜色规则
+            'INFO': 'blue',  # 当级别为INFO时，消息主体为白色
+            'WARNING': 'yellow',
+            'ERROR': 'red',
+        }
+    }
+)
+
+handler.setFormatter(formatter)
+logger_signal = colorlog.getLogger('__name__')
+logger_signal.addHandler(handler)
+logger_signal.setLevel(logging.INFO)
+logger_signal.propagate = False  # 阻止传播到根logger
+
+# 手动给数值部分添加颜色 (结合方案一和方案二)
+GREEN = '\033[92m'
+RED = '\033[91m'
+RESET = '\033[34m'
 
 
 class SignalManager:
@@ -15,20 +51,24 @@ class SignalManager:
         self.lock = threading.Lock()
         self.executed_symbols = set()
 
-    def update_signals(self, symbols: List[str]):
+    def update_signals(self, symbols: List,signal_d: Dict):
+        data = pd.read_csv('price.csv')
+
         with self.lock:
-            self.signal_symbols_list = symbols
+            result = [list(d.values())[0] for d in symbols]
+
+            self.signal_symbols_list = result
             self.current_index = -1
             self.executed_symbols.clear()
 
-            logger.info(f"更新信号列表 (共{len(symbols)}个):")
+            logger_signal.info(f"更新信号列表 (共{len(symbols)}个):")
             columns = 5
             row_count = (len(symbols) + columns - 1) // columns
 
             # 计算每列的最大宽度
             col_widths = []
             for col in range(columns):
-                col_symbols = [symbols[i] for i in range(col, len(symbols), columns)]
+                col_symbols = [symbols[i].get('symbol') for i in range(col, len(symbols), columns)]
                 if col_symbols:
                     max_len = max(len(s) for s in col_symbols)
                     col_widths.append(max_len)
@@ -39,13 +79,32 @@ class SignalManager:
                 for col in range(columns):
                     idx = row * columns + col
                     if idx < len(symbols):
-                        item = symbols[idx]
+                        get_symbol = symbols[idx].get('symbol')
+                        get_position_side = symbols[idx].get('position_side')
+                        format_name = get_symbol.replace("USDT", "").lower()
+                        pvalues = data[data['symbols'] == format_name]['price'].values
+                        if len(pvalues) > 0:
+                            key_price = pvalues[0]
+                            if get_position_side == 'L':
+                                c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
+                                percent = (c_price - key_price) / key_price * 100
+                                color = GREEN if percent > 0 else RED
+
+                            elif get_position_side == 'S':
+                                c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
+                                percent = (key_price - c_price) / key_price * 100
+                                color = GREEN if percent > 0 else RED
+                            colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
+
+                        else:
+                            colored_percent_txt = "..."
+                        item = get_symbol + ' ' + get_position_side + " " +colored_percent_txt
                         # 对齐显示
                         padded_item = item.ljust(col_widths[col])
                         row_items.append(padded_item)
 
                 if row_items:
-                    logger.info("  " + " | ".join(row_items).rstrip())
+                    logger_signal.info("  " + " | ".join(row_items).rstrip())
 
     def get_current_symbol(self) -> Optional[str]:
         with self.lock:

@@ -1,6 +1,41 @@
 import pandas as pd
 import numpy as np
 
+
+def is_strong_bullish(kline, min_body_pct=1.0, shadow_threshold=0.25):
+    """
+    判断是否为实体足够大、影线很短的阳K线
+
+    Args:
+        kline: K线数据（包含 open, close, high, low）
+        min_body_pct: 最小实体百分比（相对于开盘价），默认1%
+        shadow_threshold: 影线/实体比例阈值，小于此值表示影线很短
+
+    Returns:
+        bool: 是否满足条件
+    """
+    # 必须是阳线
+    if kline['close'] <= kline['open']:
+        return False
+
+    # 计算实体百分比
+    body = abs(kline['close'] - kline['open'])
+    body_pct = (body / kline['open']) * 100
+
+    # 实体必须大于最小百分比
+    if body_pct < min_body_pct:
+        return False
+
+    # 计算影线比例
+    upper_shadow = kline['high'] - kline['close']  # 阳线上影线 = 最高 - 收盘
+    lower_shadow = kline['open'] - kline['low']  # 阳线下影线 = 开盘 - 最低
+    total_shadow = upper_shadow + lower_shadow
+
+    shadow_ratio = total_shadow / body
+
+    # 影线必须很短
+    return shadow_ratio < shadow_threshold
+
 def is_morning_star(kline_data, doji_ratio=0.25, position=-2):
     """
     判断最后三根K线是否为希望之星

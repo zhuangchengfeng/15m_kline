@@ -4,7 +4,7 @@ from datetime import timezone, timedelta
 import logging
 from binance.um_futures import UMFutures
 import datetime
-
+import time
 # 导入信号记录器
 
 
@@ -21,14 +21,14 @@ INTERVAL_TO_MIN = {
     '8h': 480,
     '12h': 720,
     '1d': 1440,
+    '1w': 10080,
 }
 
 
 def interval_divide():
     filtered_intervals = {k: v for k, v in INTERVAL_TO_MIN.items()
-                          if v >= 1 and v <= 1440}
+                          }
     schedule_rules = {}
-
     for interval, minutes in filtered_intervals.items():
         if minutes <= 30:  # 分钟级别周期：
             # 计算分钟数组：每个周期内的分钟点
@@ -78,7 +78,8 @@ def display_status():
 def get_exchange_info():
     url = 'https://fapi.binance.com/fapi/v1/exchangeInfo'
     res = requests.get(url=url, proxies={"http": 'http://127.0.0.1:7890', "https": 'http://127.0.0.1:7890'})
-    return res.json().get('rateLimits')[0].get('limit')
+
+    return res.json()
 
 
 # 配置类
@@ -91,7 +92,8 @@ class Config:
 
     try:
         from signal_recorder import SignalRecorder
-        AFTER_TIME_HOUR = 8
+        DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
+        AFTER_TIME_HOUR = 4
         signal_recorder = SignalRecorder(hour=AFTER_TIME_HOUR)
         RECORDER_AVAILABLE = True
         RECORDER_LOGGER = False
@@ -102,10 +104,18 @@ class Config:
         logger.warning("SignalRecorder未找到，信号将不会被记录")
         RECORDER_AVAILABLE = False
 
-    RATELIMIT = get_exchange_info()
-    CLICK_COORDINATES_BINANCE = {
-        'first_double_click': (165, 175),  # 币安电脑端 查询品种坐标
-        'second_click': (165, 300), }  # 默认下移125单位
+    RATELIMIT = get_exchange_info().get('rateLimits')[0].get('limit')
+    ONE_MONTH_LATER = int(time.time() * 1000) + (30 * 24 * 3600 * 1000)
+
+    P5 = True
+    if P5:
+        CLICK_COORDINATES_BINANCE = {
+            'first_double_click': (165, 508),  # 币安电脑端自定义布局 查询品种坐标
+            'second_click': (165, 620), }  # 下移单位
+    else:
+        CLICK_COORDINATES_BINANCE = {
+            'first_double_click': (165, 175),  # 币安电脑端 查询品种坐标
+            'second_click': (165, 300), }  # 下移单位
 
     CLICK_COORDINATES_TRADING_VIEW = {
         'second_click': (758, 421)
@@ -113,9 +123,9 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['15m']
-    MIN_VOLUME = 20000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
-    SYMBOLS_RANGE = (1, 100)  # 取涨幅榜前1到品种
+    KLINE_INTERVAL = ['15m','1w']
+    MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
+    SYMBOLS_RANGE = (1, 222)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG','SHORT']
     BLACK_SYMBOL_LIST = []
     #  ---------------------------------------------------------#
@@ -132,9 +142,13 @@ class Config:
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
     PROXY_D = {"http": 'http://127.0.0.1:7890', "https": 'http://127.0.0.1:7890'}
+
+    #  ---------------------------------------------------------#
     KLINE_LIMIT = 99  # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
     KLINE_LIMIT_UPDATE = 6  # 增量更新最小K线  节省流量
-    DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
+    SAVE_DISK = False
+    #  ---------------------------------------------------------#
+
     UTC_TZ = timezone.utc
     BEIJING_TZ = timezone(timedelta(hours=8))
 
@@ -148,13 +162,24 @@ class Config:
         KLINE_INTERVAL_SORT.append('1m')
     SCAN_SECOND_DELAY = range(3,9)  # 扫描时间点（秒） list or int type
     SCAN_INTERVALS = interval_divide().get(KLINE_INTERVAL_SORT[-1])
-    print(SCAN_INTERVALS)
     EMA_ATR_INFO = False
     PLAY_SOUND = True
     API_KEY_SECRET_FILE_PATH = "H:\交易经验\l.txt"  # save your bn key and secret .txt  double lines
-    TARGET = round(228000 / 7, 0)  # 你 的目标本金￥CNY,your point USDT in the future
-    RATIO = 1.2
-    SAVE_DISK = False
+    TARGET = round(14000 / 7, 0)  # 你 的目标本金￥CNY,your point USDT in the future
+    RATIO = 1.12
     SCAN_ON_START = True
 
+
 Config()
+# from binance.um_futures import UMFutures
+# from config import Config
+# client = UMFutures
+# proxies = {
+#     "http": "http://127.0.0.1:7890",
+#     "https": "http://127.0.0.1:7890"
+# }
+# with open(Config.API_KEY_SECRET_FILE_PATH, 'r') as f:
+#     data = f.readlines()
+#
+# clean_list = [item.strip() for item in data]
+# rsa_client = UMFutures(key=clean_list[0], secret=clean_list[1], proxies=proxies)

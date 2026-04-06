@@ -212,7 +212,7 @@ class TradingSignalBot:
 
         # 并发获取数据
         d = {}
-        for i in self.config.KLINE_INTERVAL_SORT:
+        for i in self.config.KLINE_INTERVAL_SORT:  # 最小的周期最后遍历
             # 根据是否首次扫描决定是否使用缓存
             use_cache = not first_scan
 
@@ -255,11 +255,13 @@ class TradingSignalBot:
                         interval,
                         result,
                     )
-                    if has_signal[0]:
+                    if has_signal[0]:  # (1 , -1)  or 0
                         n = signal_d.get(result['symbol'])[0] + has_signal[0]
                         signal_d.update({result['symbol']: [n, result]})
         count = len(self.config.KLINE_INTERVAL)
+        #  signal_d 保留的是最小周期的K线数据
         for k, v in signal_d.items():    # k == result['symbol']->str  v == [signal_n,result]->list
+
             if v[0] >= count or v[0] <= -count:
                 if v[0] >=count:
                     position_side = 'L'
@@ -271,10 +273,10 @@ class TradingSignalBot:
                 if '\u4e00' <= k <= '\u9fff':
                     logger.debug(f'已删除中文品种{k}')
                 else:
-                    signal_symbols.append(k)
+                    signal_symbols.append({'symbol':k,'position_side':position_side})
 
-        # 更新信号管理器
-        self.signal_manager.update_signals(signal_symbols)
+        # 更新信号管理器并输出表格
+        self.signal_manager.update_signals(signal_symbols,signal_d)
         return signal_symbols
 
     def recorder(self,result: dict , position_side:str ,record_signal: bool = True, check_duplicate: bool = True):

@@ -42,13 +42,19 @@ class MouseOperator:
 
                 # 3. 粘贴操作
                 pyautogui.hotkey('ctrl', 'v')
-                time.sleep(0.1)
+                if Config.P5:
+                    time.sleep(0.5)
+                else:
+                    time.sleep(0.2)
 
 
                 # 4. 单击位置
                 pyautogui.moveTo(coords['second_click'], duration=0.05)
+                if Config.P5:
+                    time.sleep(0.5)
+                else:
+                    time.sleep(0.2)
                 pyautogui.click()
-                time.sleep(0.1)
 
                 logger.debug(f"✅ 剪贴板方式完成: {symbol}")
                 return True

@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import pytz
 import time
+from config import Config
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -65,12 +66,14 @@ class SymbolManager:
                     try:
                         symbol = symbol_info.get('symbol', '')
                         status = symbol_info.get('status', '')
+                        deliveryDate = symbol_info.get('deliveryDate')  #交割日期必须大于一个月
+
                         quote_asset = symbol_info.get('quoteAsset', '')
                         
                         # 检查是否为可交易的USDT交易对
                         if (status == 'TRADING' and 
                             symbol.endswith('USDT') and 
-                            quote_asset == 'USDT'):
+                            quote_asset == 'USDT' and deliveryDate >= Config.ONE_MONTH_LATER):
                             self.trading_symbols.append(symbol)
                     except Exception as e:
                         logger.debug(f"处理交易对信息时出错: {e}")
