@@ -55,8 +55,8 @@ def detect_signal(interval_check, result: dict) -> tuple:
             current = kline_data.iloc[-1]
             latest = kline_data.iloc[-2]
             green = current['close']> current['open']
-            green_latest = latest['close']> latest['open']
-            if green or green_latest:
+            # green_latest = latest['close']> latest['open']
+            if green :
                 has_signal = (1,'做多')
                 return has_signal
 
@@ -73,7 +73,7 @@ def detect_signal(interval_check, result: dict) -> tuple:
                 has_signal = (1, '做多')
                 return has_signal
 
-            if (red_green and price_power(0.9) and p >=0.6) or (green_green and p >=2 and p1>=2):
+            if (red_green and price_power(0.9) and p >=0.6) or (green_green and p >=2    and p1>=1):
                 has_signal = (1, '做多')
                 return has_signal
 
@@ -82,6 +82,7 @@ def detect_signal(interval_check, result: dict) -> tuple:
         if interval_check == '1w':
             current = kline_data.iloc[-1]
             red = current['close'] < current['open']
+
             if red:
                 has_signal = (-1,'做空')
                 return has_signal

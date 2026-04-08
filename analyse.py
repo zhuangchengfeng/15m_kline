@@ -522,5 +522,9 @@ def main(json_file_name):
 
 
 if __name__ == '__main__':
-    file = '2026-04-02.json'
+    from datetime import datetime
+
+    # 获取当前日期，格式：2026-04-07
+    file = f"{datetime.now().strftime('%Y-%m-%d')}.json"
+    print(file)
     main(file)

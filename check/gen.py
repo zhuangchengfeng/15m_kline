@@ -336,7 +336,7 @@ def generate_html_report(output_path='trading_report.html', dev_mode=False,file_
 
 # 主程序
 if __name__ == "__main__":
-    for i in ['me15.txt','B_converted_to_me15.txt','C_converted_to_me15.txt','D_converted_to_me15.txt']:
+    for i in ['me15.txt']:
         txt_path = i
         if not os.path.exists(txt_path):
             print(f"❌ 找不到文件: {txt_path}")

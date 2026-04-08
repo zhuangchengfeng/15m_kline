@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import List, Optional, Dict, Any
 import logging
 import time
@@ -18,7 +19,7 @@ from speaking_manager import PlaySound
 import threading
 import os
 from tools import async_timer_decorator
-
+import pandas as pd
 
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, max_retries: int,
                           collector: BinanceKlineCollector, use_cache: bool = True) -> List[Dict[str, Any]]:
@@ -35,6 +36,10 @@ async def fetch_all_kline(symbols: List[str], interval: str, limit: int, max_ret
 class TradingSignalBot:
     def __init__(self, config: Config):
         self.config = config
+        self.black_list = pd.read_csv('black_list.csv')
+        # 转为大写 + USDT 后缀，同时保留原格式（如果有其他后缀需求）
+        self.black_symbols_full = set([f"{s.strip().upper()}USDT" for s in self.black_list['symbols']])
+
         self.signal_manager = SignalManager()
         self.keyboard_handler = KeyboardHandler()
         self.alert_manager = AlertManager()
@@ -54,6 +59,7 @@ class TradingSignalBot:
         if os.path.exists(self.config.API_KEY_SECRET_FILE_PATH):
             from really import xxt
             self.times = xxt()
+
     async def run(self):
         """运行主程序"""
         self.running = True
@@ -206,6 +212,8 @@ class TradingSignalBot:
             from symbol_manager import SymbolManager
             manager = SymbolManager(self.config.MIN_VOLUME)
             symbols = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
+            symbols = [s for s in symbols if s not in self.black_symbols_full]
+
         except ImportError:
             logger.warning("import出错，使用示例币种")
             symbols = ['BTCUSDT']
@@ -276,7 +284,10 @@ class TradingSignalBot:
                     signal_symbols.append({'symbol':k,'position_side':position_side})
 
         # 更新信号管理器并输出表格
-        self.signal_manager.update_signals(signal_symbols,signal_d)
+        try:
+            self.signal_manager.update_signals(signal_symbols,signal_d)
+        except Exception as e:
+            traceback.print_exc(e)
         return signal_symbols
 
     def recorder(self,result: dict , position_side:str ,record_signal: bool = True, check_duplicate: bool = True):

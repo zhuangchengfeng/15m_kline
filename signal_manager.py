@@ -83,17 +83,25 @@ class SignalManager:
                         get_position_side = symbols[idx].get('position_side')
                         format_name = get_symbol.replace("USDT", "").lower()
                         pvalues = data[data['symbols'] == format_name]['price'].values
+                        mode = data[data['symbols'] == format_name]['mode'].values
                         if len(pvalues) > 0:
-                            key_price = pvalues[0]
+                            key_price = float(pvalues[0])
                             if get_position_side == 'L':
                                 c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
                                 percent = (c_price - key_price) / key_price * 100
-                                color = GREEN if percent > 0 else RED
+                                if mode == 'l':
+                                    color = GREEN if percent > 0 else RED
+                                else:
+                                    color = GREEN if percent < 0 else RED
 
                             elif get_position_side == 'S':
                                 c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
                                 percent = (key_price - c_price) / key_price * 100
-                                color = GREEN if percent > 0 else RED
+                                if mode == 'l':
+                                    color = GREEN if percent > 0 else RED
+                                else:
+                                    color = GREEN if percent < 0 else RED
+
                             colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
 
                         else:
