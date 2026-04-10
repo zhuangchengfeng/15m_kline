@@ -86,24 +86,19 @@ class SignalManager:
                         mode = data[data['symbols'] == format_name]['mode'].values
                         if len(pvalues) > 0:
                             key_price = float(pvalues[0])
-                            if get_position_side == 'L':
+                            if get_position_side == 'L' and mode =='l':
                                 c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
                                 percent = (c_price - key_price) / key_price * 100
-                                if mode == 'l':
-                                    color = GREEN if percent > 0 else RED
-                                else:
-                                    color = GREEN if percent < 0 else RED
+                                color = GREEN if percent > 0 else RED
+                                colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
 
-                            elif get_position_side == 'S':
+                            elif get_position_side == 'S' and mode =='s':
                                 c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
                                 percent = (key_price - c_price) / key_price * 100
-                                if mode == 'l':
-                                    color = GREEN if percent > 0 else RED
-                                else:
-                                    color = GREEN if percent < 0 else RED
-
-                            colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
-
+                                color = GREEN if percent < 0 else RED
+                                colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
+                            else:
+                                colored_percent_txt = "..."
                         else:
                             colored_percent_txt = "..."
                         item = get_symbol + ' ' + get_position_side + " " +colored_percent_txt

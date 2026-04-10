@@ -128,6 +128,7 @@ class Config:
     SYMBOLS_RANGE = (1, 222)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG','SHORT']
     BLACK_SYMBOL_LIST = []
+    ADVANCE_MODE = True
     #  ---------------------------------------------------------#
 
 
@@ -165,8 +166,8 @@ class Config:
     EMA_ATR_INFO = False
     PLAY_SOUND = True
     API_KEY_SECRET_FILE_PATH = "H:\交易经验\l.txt"  # save your bn key and secret .txt  double lines
-    TARGET = round(14000 / 7, 0)  # 你 的目标本金￥CNY,your point USDT in the future
-    RATIO = 1.12
+    TARGET = round(270-35, 0)  # 你 的目标本金,your point USDT in the future
+    RATIO = 1.3
     SCAN_ON_START = True
 
 

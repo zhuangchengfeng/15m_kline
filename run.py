@@ -104,7 +104,7 @@ class TradingSignalBot:
                 import traceback
                 traceback.print_exc()
                 await asyncio.sleep(1)
-
+                raise
     async def process_cycle(self,un_check=False):
         """处理每个周期"""
         now = datetime.datetime.now()
@@ -190,14 +190,16 @@ class TradingSignalBot:
             else:
                 logger.info("📉 未发现信号")
 
-            self.last_scan_time = scan_time
 
         except Exception as e:
             import traceback
             traceback.print_exc()
             logger.error(f"❌ 扫描失败: {e}")
+            raise e
         finally:
+            self.last_scan_time = scan_time
             self.is_scanning = False
+
     @async_timer_decorator
     async def scan_signal_signals(self) -> List[str]:
         """扫描信号"""
@@ -287,7 +289,8 @@ class TradingSignalBot:
         try:
             self.signal_manager.update_signals(signal_symbols,signal_d)
         except Exception as e:
-            traceback.print_exc(e)
+            traceback.print_exc()
+            raise
         return signal_symbols
 
     def recorder(self,result: dict , position_side:str ,record_signal: bool = True, check_duplicate: bool = True):
