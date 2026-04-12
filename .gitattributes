@@ -1,1 +1,1 @@
-*.js linguist-vendored
+check/static/*.js linguist-vendored
