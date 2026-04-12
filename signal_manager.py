@@ -1,11 +1,15 @@
 # signal_manager.py
 import threading
 import logging
+import time
 from typing import List, Optional, Dict
 import pandas as pd
 # logger = logging.getLogger(__name__)
 import logging
 import colorlog
+import os,json
+from datetime import datetime
+import shutil
 
 # 1. 创建一个处理器 (Handler)
 handler = logging.StreamHandler()
@@ -50,9 +54,31 @@ class SignalManager:
         self.current_index: int = 0
         self.lock = threading.Lock()
         self.executed_symbols = set()
+        # 初始化时归档旧的信号文件
 
-    def update_signals(self, symbols: List,signal_d: Dict):
+
+    def update_signals(self, symbols: List, signal_d: Dict):
         data = pd.read_csv('price.csv')
+
+        # 加载当天的JSON文件统计信号次数
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        json_file_path = f'signal_data/{today_str}.json'
+
+        json_data = {}  # 初始化为空字典，避免未定义
+        if os.path.exists(json_file_path):
+            try:
+                with open(json_file_path, 'r', encoding='utf-8') as f:
+                    json_data = json.load(f)
+            except Exception as e:
+                logger_signal.error(f"读取JSON文件失败: {e}")
+
+        # 预先计算每个symbol的信号次数，避免重复计算
+        signal_counts = {}
+        for symbol, symbol_data in json_data.items():
+            if 'signals' in symbol_data:
+                count_L = sum(1 for s in symbol_data['signals'] if s.get('position_side') == 'L')
+                count_S = sum(1 for s in symbol_data['signals'] if s.get('position_side') == 'S')
+                signal_counts[symbol] = {'L': count_L, 'S': count_S}
 
         with self.lock:
             result = [list(d.values())[0] for d in symbols]
@@ -65,13 +91,13 @@ class SignalManager:
             columns = 5
             row_count = (len(symbols) + columns - 1) // columns
 
-            # 计算每列的最大宽度
+            # 计算每列的最大宽度（需要为信号次数预留空间）
             col_widths = []
             for col in range(columns):
                 col_symbols = [symbols[i].get('symbol') for i in range(col, len(symbols), columns)]
                 if col_symbols:
                     max_len = max(len(s) for s in col_symbols)
-                    col_widths.append(max_len)
+                    col_widths.append(max_len + 10)  # 增加10个字符宽度给信号次数
 
             # 输出表格
             for row in range(row_count):
@@ -84,15 +110,15 @@ class SignalManager:
                         format_name = get_symbol.replace("USDT", "").lower()
                         pvalues = data[data['symbols'] == format_name]['price'].values
                         mode = data[data['symbols'] == format_name]['mode'].values
+
                         if len(pvalues) > 0:
                             key_price = float(pvalues[0])
-                            if get_position_side == 'L' and mode =='l':
+                            if get_position_side == 'L' and mode == 'l':
                                 c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
                                 percent = (c_price - key_price) / key_price * 100
                                 color = GREEN if percent > 0 else RED
                                 colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
-
-                            elif get_position_side == 'S' and mode =='s':
+                            elif get_position_side == 'S' and mode == 's':
                                 c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
                                 percent = (key_price - c_price) / key_price * 100
                                 color = GREEN if percent < 0 else RED
@@ -101,7 +127,17 @@ class SignalManager:
                                 colored_percent_txt = "..."
                         else:
                             colored_percent_txt = "..."
-                        item = get_symbol + ' ' + get_position_side + " " +colored_percent_txt
+
+                        # 获取信号次数（从预计算的字典中）
+                        counts = signal_counts.get(get_symbol, {'L': 0, 'S': 0})
+                        if get_position_side == 'L':
+                            count = counts['L']
+                        else:
+                            count = counts['S']
+
+                        # 构建显示项，添加信号次数
+                        item = f"{get_symbol} {get_position_side} {colored_percent_txt} [{count}]"
+
                         # 对齐显示
                         padded_item = item.ljust(col_widths[col])
                         row_items.append(padded_item)

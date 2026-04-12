@@ -282,7 +282,7 @@ class BinanceKlineCollector:
         self.before_request_count = self.request_count
 
     async def fetch_kline(self, symbol: str, interval: str, limit: int, max_retries: int = 3,
-                          use_cache: bool = True) -> Optional[pd.DataFrame]:
+                          use_cache: bool = True, endtime=None) -> Optional[pd.DataFrame]:
         """获取单个币种K线数据，支持缓存
 
         Args:
@@ -299,9 +299,9 @@ class BinanceKlineCollector:
             return await self.fetch_kline_incremental(symbol, interval, fetch_limit, limit, max_retries)
         else:
             # 首次扫描，全量获取
-            return await self.fetch_kline_full(symbol, interval, limit, max_retries)
+            return await self.fetch_kline_full(symbol, interval, limit, max_retries, endtime=endtime)
 
-    async def _make_request_with_retry(self, url: str, params: dict, max_retries: int) -> Optional[tuple]:
+    async def _make_request_with_retry(self, url: str, params: dict, max_retries: int, endtime = None) -> Optional[tuple]:
         """带重试机制的请求方法，返回 (response_text, data) 或 None"""
         await self.ensure_session_valid()  # 确保 session 有效
 
@@ -317,23 +317,23 @@ class BinanceKlineCollector:
                     response_text = await response.text()
                     self.total_bytes += len(response_text.encode('utf-8'))
                     self.request_count += 1
-
                     if response.status == 200:
                         data = json.loads(response_text)
 
                         # 检查数据是否延迟
-                        latest_close_time = data[-1][6]
-                        delay_ms = current_timestamp - latest_close_time
+                        if endtime is None:
+                            latest_close_time = data[-1][6]
+                            delay_ms = current_timestamp - latest_close_time
 
-                        if delay_ms > 0:
-                            logger.debug(f"{symbol} 数据延迟，第{attempt + 1}次重试")
-                            if attempt < max_retries - 1:
-                                await asyncio.sleep(3)
-                                current_timestamp = time.time() * 1000
-                                continue
-                            else:
-                                logger.debug(f"{symbol} 数据持续延迟，放弃重试")
-                                return None
+                            if delay_ms > 0:
+                                logger.debug(f"{symbol} 数据延迟，第{attempt + 1}次重试")
+                                if attempt < max_retries - 1:
+                                    await asyncio.sleep(3)
+                                    current_timestamp = time.time() * 1000
+                                    continue
+                                else:
+                                    logger.debug(f"{symbol} 数据持续延迟，放弃重试")
+                                    return None
 
                         return response_text, data
             except asyncio.TimeoutError:
@@ -357,13 +357,15 @@ class BinanceKlineCollector:
 
         return None
 
-    async def fetch_kline_full(self, symbol: str, interval: str, limit: int, max_retries: int) -> Optional[
+    async def fetch_kline_full(self, symbol: str, interval: str, limit: int, max_retries: int, endtime = None) -> Optional[
         pd.DataFrame]:
         """全量获取K线数据（首次扫描用）"""
         url = 'https://fapi.binance.com/fapi/v1/klines'
-        params = {'symbol': symbol, 'interval': interval, 'limit': limit}
-
-        result = await self._make_request_with_retry(url, params, max_retries)
+        if endtime:
+            params = {'symbol': symbol, 'interval': interval, 'limit': limit,'endTime':endtime}
+        else:
+            params = {'symbol': symbol, 'interval': interval, 'limit': limit}
+        result = await self._make_request_with_retry(url, params, max_retries, endtime)
         if result is None:
             return None
 

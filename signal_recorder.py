@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class SignalRecorder:
-    def __init__(self, hour,data_dir: str = "signal_data"):
+    def __init__(self, hour,duplicate_window,data_dir: str = "signal_data"):
         """初始化信号记录器"""
         self.data_dir = data_dir
         self.history_dir = os.path.join(data_dir, "history")
@@ -24,7 +24,63 @@ class SignalRecorder:
 
         # 加载数据
         self.data = self._load_or_init_data()
-        self.duplicate_time_window = 10  # 防重复时间窗口(分钟)
+        self.duplicate_time_window = duplicate_window  # 防重复时间窗口(分钟)
+        self._archive_old_signal_files()
+
+    def _archive_old_signal_files(self):
+        """
+        将 signal_data 文件夹中非当天的 JSON 文件移动到 history 文件夹
+        """
+        signal_data_dir = "signal_data"
+        history_dir = os.path.join(signal_data_dir, "history")
+
+        # 检查 signal_data 文件夹是否存在
+        if not os.path.exists(signal_data_dir):
+            logger.info(f"信号数据目录不存在: {signal_data_dir}")
+            return
+
+        # 创建 history 文件夹（如果不存在）
+        os.makedirs(history_dir, exist_ok=True)
+
+        # 获取今天的日期字符串
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        today_file = f"{today_str}.json"
+
+        # 遍历 signal_data 目录下的所有文件
+        moved_count = 0
+        for filename in os.listdir(signal_data_dir):
+            # 只处理 JSON 文件
+            if not filename.endswith('.json'):
+                continue
+
+            file_path = os.path.join(signal_data_dir, filename)
+
+            # 跳过今天的文件
+            if filename == today_file:
+                continue
+
+            # 跳过已经存在的 history 文件夹（防止递归移动）
+            if os.path.isdir(file_path):
+                continue
+
+            try:
+                # 目标路径
+                dest_path = os.path.join(history_dir, filename)
+
+                # 如果目标文件已存在，可以选择覆盖或跳过
+                # 这里选择跳过已存在的文件
+                if os.path.exists(dest_path):
+                    logger.debug(f"文件已存在于 history 目录，跳过: {filename}")
+                    continue
+
+                # 移动文件
+                import shutil
+                shutil.move(file_path, dest_path)
+                moved_count += 1
+                logger.info(f"已归档信号文件: {filename} -> history/")
+
+            except Exception as e:
+                logger.error(f"移动文件失败 {filename}: {e}")
 
     def _load_or_init_data(self) -> Dict[str, Any]:
         """加载或初始化数据"""
@@ -199,7 +255,7 @@ class SignalRecorder:
         for signal in signals[::-1]:  # 从最新的开始检查
             # 检查时间差
             try:
-                signal_time = datetime.strptime(signal["time"], "%Y/%m/%d %H:%M:%S")
+                signal_time = datetime.strptime(signal["open_time"], "%Y/%m/%d %H:%M:%S")
             except:
                 continue
 

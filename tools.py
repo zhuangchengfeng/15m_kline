@@ -3,6 +3,42 @@ import time
 
 import logging
 from functools import wraps
+from datetime import datetime, timezone, timedelta
+
+
+def get_timestamp(year, month, day, hour, minute, tz='Asia/Shanghai'):
+    """
+    将指定时间转换为毫秒时间戳
+
+    Args:
+        year: 年份
+        month: 月份
+        day: 日期
+        hour: 小时
+        minute: 分钟
+        tz: 时区，默认 'Asia/Shanghai' (北京时间 UTC+8)
+
+    Returns:
+        int: 毫秒时间戳
+    """
+    # 创建 datetime 对象
+    dt = datetime(year, month, day, hour, minute)
+
+    # 设置时区
+    if tz == 'Asia/Shanghai':
+        # 北京时间 UTC+8
+        beijing_tz = timezone(timedelta(hours=8))
+        dt = dt.replace(tzinfo=beijing_tz)
+    elif tz == 'UTC':
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        # 其他时区可以在这里添加
+        raise ValueError(f"不支持的时区: {tz}")
+
+    # 转换为毫秒时间戳
+    timestamp_ms = int(dt.timestamp() * 1000)
+
+    return timestamp_ms
 
 
 def get_active_window_info():

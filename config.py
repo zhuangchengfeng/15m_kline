@@ -6,7 +6,7 @@ from binance.um_futures import UMFutures
 import datetime
 import time
 # 导入信号记录器
-
+from tools import get_timestamp
 
 INTERVAL_TO_MIN = {
     '1m': 1,
@@ -90,19 +90,7 @@ class Config:
         "https": "http://127.0.0.1:7890"
     })
 
-    try:
-        from signal_recorder import SignalRecorder
-        DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
-        AFTER_TIME_HOUR = 4
-        signal_recorder = SignalRecorder(hour=AFTER_TIME_HOUR)
-        RECORDER_AVAILABLE = True
-        RECORDER_LOGGER = False
-    except ImportError:
-        import traceback
-        traceback.print_exc()
-        logger = logging.getLogger(__name__)
-        logger.warning("SignalRecorder未找到，信号将不会被记录")
-        RECORDER_AVAILABLE = False
+
 
     RATELIMIT = get_exchange_info().get('rateLimits')[0].get('limit')
     ONE_MONTH_LATER = int(time.time() * 1000) + (30 * 24 * 3600 * 1000)
@@ -123,12 +111,14 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['15m','1w']
+    KLINE_INTERVAL = ['15m','1w','1d']
     MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 222)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG','SHORT']
     BLACK_SYMBOL_LIST = []
-    ADVANCE_MODE = True
+    # END_TIME = get_timestamp(2026, 4, 12, 12, 15)    #:int ms  用于回测，输入结束时间判断K线信号
+    END_TIME = None
+    BACK_TESTING_SYMBOLS = []  #不回测时请清空
     #  ---------------------------------------------------------#
 
 
@@ -163,24 +153,27 @@ class Config:
         KLINE_INTERVAL_SORT.append('1m')
     SCAN_SECOND_DELAY = range(3,9)  # 扫描时间点（秒） list or int type
     SCAN_INTERVALS = interval_divide().get(KLINE_INTERVAL_SORT[-1])
+    print(INTERVAL_TO_MIN.get(KLINE_INTERVAL_SORT[-1]))
     EMA_ATR_INFO = False
     PLAY_SOUND = True
     API_KEY_SECRET_FILE_PATH = "H:\交易经验\l.txt"  # save your bn key and secret .txt  double lines
-    TARGET = round(270-35, 0)  # 你 的目标本金,your point USDT in the future
+    TARGET = round(200, 0)  # 你 的目标本金,your point USDT in the future
     RATIO = 1.3
     SCAN_ON_START = True
 
+    try:
+        from signal_recorder import SignalRecorder
+        DEFAULT_JSON_PATH = ['signal_data/history/', 'signal_data/']
+        AFTER_TIME_HOUR = 4
+        duplicate_window = INTERVAL_TO_MIN.get(KLINE_INTERVAL_SORT[-1])
+        signal_recorder = SignalRecorder(hour=AFTER_TIME_HOUR,duplicate_window=duplicate_window)
+        RECORDER_AVAILABLE = False if len(BACK_TESTING_SYMBOLS) >0 else True
+        RECORDER_LOGGER = False
+    except ImportError:
+        import traceback
+        traceback.print_exc()
+        logger = logging.getLogger(__name__)
+        logger.warning("SignalRecorder未找到，信号将不会被记录")
+        RECORDER_AVAILABLE = False
 
 Config()
-# from binance.um_futures import UMFutures
-# from config import Config
-# client = UMFutures
-# proxies = {
-#     "http": "http://127.0.0.1:7890",
-#     "https": "http://127.0.0.1:7890"
-# }
-# with open(Config.API_KEY_SECRET_FILE_PATH, 'r') as f:
-#     data = f.readlines()
-#
-# clean_list = [item.strip() for item in data]
-# rsa_client = UMFutures(key=clean_list[0], secret=clean_list[1], proxies=proxies)

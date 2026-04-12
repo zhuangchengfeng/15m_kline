@@ -22,9 +22,9 @@ from tools import async_timer_decorator
 import pandas as pd
 
 async def fetch_all_kline(symbols: List[str], interval: str, limit: int, max_retries: int,
-                          collector: BinanceKlineCollector, use_cache: bool = True) -> List[Dict[str, Any]]:
+                          collector: BinanceKlineCollector, use_cache: bool = True, endtime = None) -> List[Dict[str, Any]]:
     """并发获取所有币种K线数据"""
-    tasks = [collector.fetch_kline(symbol, interval, limit, max_retries, use_cache) for symbol in symbols]
+    tasks = [collector.fetch_kline(symbol, interval, limit, max_retries, use_cache, endtime = endtime) for symbol in symbols]
     results = await asyncio.gather(*tasks)
     return [{
         'symbol': symbols[i],
@@ -54,7 +54,8 @@ class TradingSignalBot:
         self.last_status_str = ""
         self.is_scanning = False
         self.last_scan_time: Optional[datetime] = None
-
+        self.endtime = self.config.END_TIME
+        self.backtesting = len(self.config.BACK_TESTING_SYMBOLS)
         self.sound_d = {}
         if os.path.exists(self.config.API_KEY_SECRET_FILE_PATH):
             from really import xxt
@@ -80,6 +81,9 @@ class TradingSignalBot:
             await self.main_loop()
         except KeyboardInterrupt:
             logger.info("程序被用户中断")
+        except RuntimeError as e:
+            if "Event loop is closed" not in str(e):
+                raise
         finally:
 
             await self.shutdown()
@@ -89,7 +93,26 @@ class TradingSignalBot:
         self.running = False
         self.keyboard_handler.stop()
         self.alert_manager.stop_beep()
-        self.executor.shutdown(wait=False)
+
+        # 取消所有正在运行的任务
+        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        for task in tasks:
+            task.cancel()
+
+        # 等待所有任务取消完成
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+        # 关闭 executor
+        self.executor.shutdown(wait=True)
+
+        # 关闭 kline_collector 的 session（如果有）
+        if hasattr(self.kline_collector, 'close'):
+            await self.kline_collector.close()
+
+        # 等待一小段时间让所有回调完成
+        await asyncio.sleep(0.1)
+
         logger.info("程序已关闭")
 
     async def main_loop(self):
@@ -215,7 +238,8 @@ class TradingSignalBot:
             manager = SymbolManager(self.config.MIN_VOLUME)
             symbols = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
             symbols = [s for s in symbols if s not in self.black_symbols_full]
-
+            if self.backtesting >0:
+                symbols = self.config.BACK_TESTING_SYMBOLS
         except ImportError:
             logger.warning("import出错，使用示例币种")
             symbols = ['BTCUSDT']
@@ -233,7 +257,8 @@ class TradingSignalBot:
                 self.config.KLINE_LIMIT,
                 self.config.MAX_RETRIES,
                 self.kline_collector,
-                use_cache  # 新增参数
+                use_cache,
+                endtime = self.endtime
             )
             d.update({i: results_aw})
         data_legal_length = (len(d.get(self.config.KLINE_INTERVAL_SORT[0])))
@@ -279,6 +304,7 @@ class TradingSignalBot:
                 else:
                     position_side = 'S'
                     self.sound_d.update({k: '做空'})
+
                 self.recorder(result=v[1],position_side=position_side, record_signal=self.config.RECORDER_AVAILABLE)
                 if '\u4e00' <= k <= '\u9fff':
                     logger.debug(f'已删除中文品种{k}')
@@ -296,7 +322,7 @@ class TradingSignalBot:
     def recorder(self,result: dict , position_side:str ,record_signal: bool = True, check_duplicate: bool = True):
         # 如果有信号且需要记录
 
-        if record_signal and self.config.RECORDER_AVAILABLE:
+        if record_signal:
             try:
                 # 获取开仓价格（使用latest['close']） 即前一根K线的收盘价作为当前开仓价格
 

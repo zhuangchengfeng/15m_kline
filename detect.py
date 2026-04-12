@@ -4,8 +4,8 @@ from datetime import datetime, timezone, timedelta
 from config import Config
 from ema_atr_manager import EmaAtrManager
 import config as cf
+from structure import is_strong_bullish, check_risk_reward, is_strong_bearish, is_strong_bearish_double
 import structure
-from structure import is_strong_bullish
 
 ema_atr = EmaAtrManager()
 logger = logging.getLogger(__name__)
@@ -43,61 +43,74 @@ def detect_signal(interval_check, result: dict) -> tuple:
         if y is None:
             return abs(latest['close'] - latest['open']) > (abs(prev['close'] - prev['open']) * x)
         else:
-            return (abs(latest['close'] - latest['open']) > (abs(prev['close'] - prev['open']) * x) and
-                    abs(latest['close'] - latest['open']) < (abs(prev['close'] - prev['open']) * y))
+            return (abs(latest['close'] - latest['open']) > (abs(prev['close'] - prev['open']) * x) and abs(latest['close'] - latest['open']) < (abs(prev['close'] - prev['open']) * y))
 
     def volume_power(x):
         return latest['volume'] >= (prev['volume'] * x)
 
 
     if 'LONG' in Config.POSITION_SIDE:
-        if interval_check == '1w':
+        if interval_check == '1w' or interval_check == '1d':
             current = kline_data.iloc[-1]
             latest = kline_data.iloc[-2]
             green = current['close']> current['open']
-            # green_latest = latest['close']> latest['open']
+            # print(f'{interval_check},{green}')
             if green :
                 has_signal = (1,'做多')
                 return has_signal
 
         if interval_check == '15m':
-            # red_green: 当前K线收阳，前一根K线收阴
             latest = kline_data.iloc[-2]  # 最新K线
             prev = kline_data.iloc[-3]  # 前一根K线
             red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
-            green_green = (latest['close'] > latest['open']) and (prev['close'] > prev['open'])
-            p = abs(latest['close']-latest['open'])/latest['open']*100
-            p1 = abs(prev['close']-prev['open'])/prev['open']*100
-            both_strong_bullish = is_strong_bullish(latest) and is_strong_bullish(prev)
-            if both_strong_bullish and p >= 1:
+            both_strong_bullish = structure.is_strong_bullish_double([latest,prev])
+
+            if len(Config.BACK_TESTING_SYMBOLS) >=1:
+                print(f"red_green:{red_green} \r\n"
+                      f"price_power : {price_power(0.618,3.86)}\r\n"
+                      f"is_strong_bullish : {is_strong_bullish(latest,0.5,0.618)}\r\n"
+                      f"both_strong_bullish : {both_strong_bullish}\r\n")
+
+            if both_strong_bullish:
+                cross = structure.is_cross_above_boll(kline_data)
+                if cross:
+                    has_signal = (1, '做多')
+                    return has_signal
+
+            if (red_green and price_power(0.618,3.86) and is_strong_bullish(latest,0.5,0.618)):
                 has_signal = (1, '做多')
                 return has_signal
-
-            if (red_green and price_power(0.9) and p >=0.6) or (green_green and p >=2    and p1>=1):
-                has_signal = (1, '做多')
-                return has_signal
-
 
     if 'SHORT' in Config.POSITION_SIDE:
-        if interval_check == '1w':
+        if interval_check == '1w' or interval_check == '1d':
             current = kline_data.iloc[-1]
             red = current['close'] < current['open']
 
             if red:
-                has_signal = (-1,'做空')
+                has_signal = (-1, '做空')
                 return has_signal
 
         if interval_check == '15m':
             latest = kline_data.iloc[-2]  # 最新K线
             prev = kline_data.iloc[-3]  # 前一根K线
             red_green = (latest['close'] < latest['open']) and (prev['close'] > prev['open'])
-            # red_red = (latest['close'] < latest['open']) and (prev['close'] < prev['open'])
-            p = abs(latest['close']-latest['open'])/latest['open']*100
+            both_strong_bearish = structure.is_strong_bearish_double([latest, prev])
 
-            if (red_green and price_power(0.9) and p>=0.6 ):
+            if len(Config.BACK_TESTING_SYMBOLS) >= 1:
+                print(f"red_green:{red_green} \r\n"
+                      f"price_power : {price_power(1)}\r\n"
+                      f"is_strong_bearish : {is_strong_bearish(latest, 0.5, 0.618)}\r\n"
+                      f"both_strong_bearish : {both_strong_bearish}\r\n")
+
+            if both_strong_bearish:
+                cross = structure.is_cross_below_boll(kline_data)  # 空头使用下穿
+                if cross:
+                    has_signal = (-1, '做空')
+                    return has_signal
+
+            if (red_green and price_power(0.618,2.618) and is_strong_bearish(latest, 0.5, 0.618)):
                 has_signal = (-1, '做空')
                 return has_signal
-
     return has_signal
 
 

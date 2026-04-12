@@ -2,7 +2,235 @@ import pandas as pd
 import numpy as np
 
 
-def is_strong_bullish(kline, min_body_pct=1.0, shadow_threshold=0.25):
+def is_cross_above_boll(kline_data, lookback=20, bb_std=2.0, volume_multiplier=2):
+    """
+    判断 latest 或 prev 是否上穿布林带上轨，并且：
+    1. latest 成交量 > prev 成交量
+    2. latest 和 prev 的成交量都大于之前20根中每一根的 volume_multiplier 倍
+    """
+    if kline_data is None or len(kline_data) < lookback + 3:
+        return False
+
+    # 计算布林带
+    ma20 = kline_data['close'].rolling(window=lookback).mean()
+    std = kline_data['close'].rolling(window=lookback).std()
+    bb_upper = ma20 + (std * bb_std)
+    # 获取数据
+    latest = kline_data.iloc[-2]
+    prev = kline_data.iloc[-3]
+
+    # 成交量历史数据（之前10根）
+    volume_history = kline_data['volume'].iloc[-(12 + 3):-3].values
+
+    # 成交量条件
+    volume_increasing = latest['volume'] > prev['volume']
+    volume_surge = (latest['volume'] > volume_history * volume_multiplier).all() and \
+                   (prev['volume'] > volume_history * volume_multiplier).all()
+    # 布林带上穿条件
+    latest_bb_upper = bb_upper.iloc[-2]
+    prev_bb_upper = bb_upper.iloc[-3]
+    latest_cross_bb = (latest['close'] > latest_bb_upper) and (latest['open'] <= latest_bb_upper)
+    prev_cross_bb = (prev['close'] > prev_bb_upper) and (prev['open'] <= prev_bb_upper) if len(
+        kline_data) >= 4 else False
+    cross_bb_occurred = latest_cross_bb or prev_cross_bb
+    return cross_bb_occurred and volume_increasing and volume_surge
+
+
+def is_cross_below_boll(kline_data, lookback=20, bb_std=2.0, volume_multiplier=2):
+    """
+    判断 latest 或 prev 是否下穿布林带下轨（空头用），并且：
+    1. latest 成交量 > prev 成交量
+    2. latest 和 prev 的成交量都大于之前20根中每一根的 volume_multiplier 倍
+    """
+    if kline_data is None or len(kline_data) < lookback + 3:
+        return False
+
+    # 计算布林带
+    ma20 = kline_data['close'].rolling(window=lookback).mean()
+    std = kline_data['close'].rolling(window=lookback).std()
+    bb_lower = ma20 - (std * bb_std)  # 下轨
+
+    # 获取数据
+    latest = kline_data.iloc[-2]
+    prev = kline_data.iloc[-3]
+
+    # 成交量历史数据（之前12根，与多头保持一致）
+    volume_history = kline_data['volume'].iloc[-(12 + 3):-3].values
+
+    # 成交量条件
+    volume_increasing = latest['volume'] > prev['volume']
+    volume_surge = (latest['volume'] > volume_history * volume_multiplier).all() and \
+                   (prev['volume'] > volume_history * volume_multiplier).all()
+
+    # 布林带下穿条件
+    latest_bb_lower = bb_lower.iloc[-2]
+    prev_bb_lower = bb_lower.iloc[-3]
+
+    # latest 下穿：开盘在上方，收盘在下方
+    latest_cross_bb = (latest['close'] < latest_bb_lower) and (latest['open'] >= latest_bb_lower)
+
+    # prev 下穿：开盘在上方，收盘在下方
+    prev_cross_bb = (prev['close'] < prev_bb_lower) and (prev['open'] >= prev_bb_lower) if len(
+        kline_data) >= 4 else False
+
+    cross_bb_occurred = latest_cross_bb or prev_cross_bb
+
+    return cross_bb_occurred and volume_increasing and volume_surge
+
+
+def is_cross_above_ma20(kline_data, lookback=20):
+    """
+    判断 latest 或 prev 是否上穿 MA20
+    上穿定义：开盘价在 MA20 下方，收盘价在 MA20 上方
+
+    Returns:
+        bool: 是否发生上穿
+    """
+    if kline_data is None or len(kline_data) < lookback + 2:
+        return False
+
+    # 计算 MA20
+    ma20 = kline_data['close'].rolling(window=lookback).mean()
+
+    # 获取数据
+    latest = kline_data.iloc[-2]
+    prev = kline_data.iloc[-3]
+
+    latest_ma20 = ma20.iloc[-2]
+    prev_ma20 = ma20.iloc[-3]
+
+    # 判断 latest 是否上穿
+    latest_cross = (latest['open'] < latest_ma20) and (latest['close'] > latest_ma20)
+
+    # 判断 prev 是否上穿
+    prev_cross = (prev['open'] < prev_ma20) and (prev['close'] > prev_ma20)
+
+    return latest_cross or prev_cross
+
+
+def is_cross_below_ma20(kline_data, lookback=20):
+    """
+    判断 latest 或 prev 是否下穿 MA20（空头用）
+    下穿定义：开盘价在 MA20 上方，收盘价在 MA20 下方
+    """
+    if kline_data is None or len(kline_data) < lookback + 2:
+        return False
+
+    ma20 = kline_data['close'].rolling(window=lookback).mean()
+
+    latest = kline_data.iloc[-2]
+    prev = kline_data.iloc[-3]
+
+    latest_ma20 = ma20.iloc[-2]
+    prev_ma20 = ma20.iloc[-3]
+
+    # 判断 latest 是否下穿
+    latest_cross = (latest['open'] > latest_ma20) and (latest['close'] < latest_ma20)
+
+    # 判断 prev 是否下穿
+    prev_cross = (prev['open'] > prev_ma20) and (prev['close'] < prev_ma20)
+
+    return latest_cross or prev_cross
+
+def is_strong_bullish_double(klines, min_body_pct=1.0, shadow_threshold=0.5, check_lower_shadow=False):
+    """
+    判断是否为实体足够大、影线很短的阴K线（连续两根）
+
+    Args:
+        klines: K线列表，至少包含2根K线
+        min_body_pct: 最小实体百分比（相对于开盘价），默认1%
+        shadow_threshold: 影线/实体比例阈值，小于此值表示影线很短
+        check_lower_shadow: 是否检查下影线
+            - False: 只要求上影线短（允许有下影线）
+            - True: 上下影线都要求短
+
+    Returns:
+        bool: 是否满足条件
+    """
+    body = []
+    body_pct = 0
+    total_shadow = 0
+    for kline in klines:
+        if kline['close'] <= kline['open']:
+            return False
+
+        # 计算实体百分比
+        body.append(abs(kline['close'] - kline['open']))
+        body_pct += (sum(body) / kline['open']) * 100
+
+        # 计算上影线
+        upper_shadow = kline['high'] - kline['close']
+        total_shadow += upper_shadow
+
+        # 如果需要检查下影线
+        if check_lower_shadow:
+            lower_shadow = kline['open'] - kline['low']
+            total_shadow += lower_shadow
+    # 实体必须大于最小百分比
+    if body_pct < min_body_pct:
+        return False
+
+    for i in range(len(body) - 1):
+        if body[i] <= body[i + 1]:
+            return False
+
+
+    shadow_ratio = total_shadow / sum(body)
+
+    return shadow_ratio < shadow_threshold
+
+
+def is_strong_bearish_double(klines, min_body_pct=1.0, shadow_threshold=0.35, check_upper_shadow=False):
+    """
+    判断是否为实体足够大、影线很短的阴K线（连续两根）
+
+    Args:
+        klines: K线列表，至少包含2根K线
+        min_body_pct: 最小实体百分比（相对于开盘价），默认1%
+        shadow_threshold: 影线/实体比例阈值，小于此值表示影线很短
+        check_upper_shadow: 是否检查上影线
+            - False: 只要求下影线短（允许有上影线）
+            - True: 上下影线都要求短
+
+    Returns:
+        bool: 是否满足条件
+    """
+    body = []
+    body_pct = 0
+    total_shadow = 0
+
+    for kline in klines:
+        # 必须是阴线
+        if kline['close'] >= kline['open']:
+            return False
+
+        # 计算实体
+        body.append(abs(kline['close'] - kline['open']))
+        body_pct += (sum(body) / kline['open']) * 100
+
+        # 计算下影线（阴线下影线 = 收盘 - 最低）
+        lower_shadow = kline['close'] - kline['low']
+        total_shadow += lower_shadow
+
+        # 如果需要检查上影线
+        if check_upper_shadow:
+            upper_shadow = kline['high'] - kline['open']
+            total_shadow += upper_shadow
+
+    # 实体必须大于最小百分比
+    if body_pct < min_body_pct:
+        return False
+
+    # 实体必须逐级变大（空头：阴线实体越来越大，表示空头力量增强）
+    for i in range(len(body) - 1):
+        if body[i] <= body[i + 1]:
+            return False
+
+    shadow_ratio = total_shadow / sum(body)
+
+    return shadow_ratio < shadow_threshold
+
+def is_strong_bullish(kline, min_body_pct=1.0, shadow_threshold=0.25, check_lower_shadow=False):
     """
     判断是否为实体足够大、影线很短的阳K线
 
@@ -10,6 +238,9 @@ def is_strong_bullish(kline, min_body_pct=1.0, shadow_threshold=0.25):
         kline: K线数据（包含 open, close, high, low）
         min_body_pct: 最小实体百分比（相对于开盘价），默认1%
         shadow_threshold: 影线/实体比例阈值，小于此值表示影线很短
+        check_lower_shadow: 是否检查下影线
+            - False: 只要求上影线短（允许有下影线，如锤子线）
+            - True: 上下影线都要求短（光头光脚阳线）
 
     Returns:
         bool: 是否满足条件
@@ -26,15 +257,147 @@ def is_strong_bullish(kline, min_body_pct=1.0, shadow_threshold=0.25):
     if body_pct < min_body_pct:
         return False
 
-    # 计算影线比例
-    upper_shadow = kline['high'] - kline['close']  # 阳线上影线 = 最高 - 收盘
-    lower_shadow = kline['open'] - kline['low']  # 阳线下影线 = 开盘 - 最低
-    total_shadow = upper_shadow + lower_shadow
+    # 计算上影线
+    upper_shadow = kline['high'] - kline['close']
+    total_shadow = upper_shadow
+
+    # 如果需要检查下影线
+    if check_lower_shadow:
+        lower_shadow = kline['open'] - kline['low']
+        total_shadow += lower_shadow
 
     shadow_ratio = total_shadow / body
 
-    # 影线必须很短
     return shadow_ratio < shadow_threshold
+
+def is_strong_bearish(kline, min_body_pct=1.0, shadow_threshold=0.25, check_upper_shadow=False):
+    """
+    判断是否为实体足够大、影线很短的阴K线
+
+    Args:
+        kline: K线数据（包含 open, close, high, low）
+        min_body_pct: 最小实体百分比（相对于开盘价），默认1%
+        shadow_threshold: 影线/实体比例阈值，小于此值表示影线很短
+        check_upper_shadow: 是否检查上影线
+            - False: 只要求下影线短（允许有上影线，如倒锤子线）
+            - True: 上下影线都要求短（光头光脚阴线）
+
+    Returns:
+        bool: 是否满足条件
+    """
+    # 必须是阴线
+    if kline['close'] >= kline['open']:
+        return False
+
+    # 计算实体百分比
+    body = abs(kline['close'] - kline['open'])
+    body_pct = (body / kline['open']) * 100
+
+    if body_pct < min_body_pct:
+        return False
+
+    # 计算下影线
+    lower_shadow = kline['close'] - kline['low']
+    total_shadow = lower_shadow
+
+    # 如果需要检查上影线
+    if check_upper_shadow:
+        upper_shadow = kline['high'] - kline['open']
+        total_shadow += upper_shadow
+
+    shadow_ratio = total_shadow / body
+
+    return shadow_ratio < shadow_threshold
+
+
+def check_risk_reward(kline_data, side, lookback=21, min_ratio=0.5, mode='',print_out=True):
+    """
+    使用 MA20（布林带中轨）判断盈亏比
+
+    Args:
+        kline_data: K线数据
+        side: 'LONG' 或 'SHORT'
+        lookback: 计算MA20的回溯周期，默认21
+        min_ratio: 最小盈亏比
+        print_out: 是否打印盈亏比信息
+
+    Returns:
+        bool: 是否满足盈亏比要求
+    """
+    if kline_data is None or len(kline_data) < lookback + 1:
+        return False
+
+    # 计算 MA20（收盘价的简单移动平均）
+    ma20 = kline_data['close'].rolling(window=lookback).mean()
+
+    latest = kline_data.iloc[-2]
+    current = latest['close']
+    ma20_value = ma20.iloc[-2]  # 对应 latest 的 MA20 值
+
+    # 最近 lookback 根K线的最高点和最低点（用于计算目标位）
+    recent_klines = kline_data.iloc[-lookback - 1:-1]
+    highest = recent_klines['close'].max()
+    lowest = recent_klines['close'].min()
+
+    if side == 'LONG':
+        # 目标位：前高（highest）
+        # 止损位：MA20（中轨）
+
+        # 如果当前价已经高于目标位，直接通过
+        if current >= highest:
+            if print_out:
+                print(f"✅ 已超过目标位 {highest}")
+            return True
+
+        # 如果当前价已经低于 MA20（止损位），不应该做多
+        if current <= ma20_value:
+            if print_out:
+                print(f"❌ 当前价 {current} 已低于 MA20 {ma20_value:.4f}，不适合做多")
+            return False
+
+        upside = (highest - current) / current  # 上涨空间（到前高）
+        downside = (current - ma20_value) / current  # 下跌空间（到 MA20）
+
+        if downside <= 0:
+            return False
+
+        ratio = upside / downside
+
+        if print_out:
+            print(f"📊 做多盈亏比: {ratio:.2f} | 上涨空间: {upside * 100:.2f}% | 下跌空间: {downside * 100:.2f}%")
+            print(f"   当前价: {current:.4f} | MA20(止损): {ma20_value:.4f} | 目标(前高): {highest:.4f}")
+
+    else:  # SHORT
+        # 目标位：前低（lowest）
+        # 止损位：MA20（中轨）
+
+        # 如果当前价已经低于目标位，直接通过
+        if current <= lowest:
+            if print_out:
+                print(f"✅ 已低于目标位 {lowest}")
+            return True
+
+        # 如果当前价已经高于 MA20（止损位），不应该做空
+        if current >= ma20_value:
+            if print_out:
+                print(f"❌ 当前价 {current} 已高于 MA20 {ma20_value:.4f}，不适合做空")
+            return False
+
+        downside = (current - lowest) / current  # 下跌空间（到前低）
+        upside = (ma20_value - current) / current  # 上涨空间（到 MA20）
+
+        if upside <= 0:
+            return False
+
+        ratio = downside / upside
+
+        if print_out:
+            print(f"📊 做空盈亏比: {ratio:.2f} | 下跌空间: {downside * 100:.2f}% | 上涨空间: {upside * 100:.2f}%")
+            print(f"   当前价: {current:.4f} | MA20(止损): {ma20_value:.4f} | 目标(前低): {lowest:.4f}")
+
+    if mode =='rg_gr':
+        return (ratio >= min_ratio or ratio <=0.2)
+    return ratio >= min_ratio
 
 def is_morning_star(kline_data, doji_ratio=0.25, position=-2):
     """
