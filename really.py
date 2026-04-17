@@ -8,7 +8,7 @@ config_logging(logging, logging.INFO)
 
 
 
-def xxt():
+def wallet():
     try:
 
         proxies = {
@@ -39,4 +39,4 @@ def xxt():
 
 if __name__ == '__main__':
 
-    xxt()
+    wallet()

@@ -101,3 +101,28 @@ def async_timer_decorator(func):
     return wrapper
 
 
+# 辅助函数：时间戳转北京时间字符串
+def timestamp_to_beijing_str(timestamp_ms: float) -> str:
+    """
+    将毫秒时间戳转换为北京时间的字符串
+
+    Args:
+        timestamp_ms: 毫秒时间戳
+
+    Returns:
+        str: 北京时间字符串，格式：YYYY/MM/DD HH:MM:SS
+    """
+    # 设置北京时区
+    BEIJING_TZ = timezone(timedelta(hours=8))
+    UTC_TZ = timezone.utc
+
+    try:
+        timestamp_seconds = timestamp_ms / 1000.0
+        utc_time = datetime.fromtimestamp(timestamp_seconds, tz=UTC_TZ)
+        beijing_time = utc_time.astimezone(BEIJING_TZ)
+        return beijing_time.strftime("%Y/%m/%d %H:%M:%S")
+    except Exception as e:
+        print(f"时间戳转换失败: {e}")
+        return datetime.now(BEIJING_TZ).strftime("%Y/%m/%d %H:%M:%S")
+
+

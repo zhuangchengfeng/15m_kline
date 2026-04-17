@@ -1,1 +1,6 @@
 check/static/*.js linguist-vendored
+
+
+
+# 如果这些文件是自动生成的，也可以标记为生成的文件
+check/*.html linguist-generated

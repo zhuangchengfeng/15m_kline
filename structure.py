@@ -1,6 +1,123 @@
 import pandas as pd
 import numpy as np
 
+def is_price_at_low_zone(kline_data, lookback=20, rank_threshold=None, percentile_threshold=None, include_self=True,iloc=-2):
+    """
+    判断最新K线的最低点是否处于最近N根K线的低位区域。
+
+    Args:
+        kline_data: DataFrame，包含 'low' 列
+        lookback: 回溯K线根数（默认20）
+        rank_threshold: 排名阈值（如3表示最低价是最近N根中的第1、2或3小）
+        percentile_threshold: 分位数阈值（0~1之间，如0.2表示最低价低于20%分位数）
+        include_self: 是否将当前K线包含在比较范围内（默认True）
+
+    Returns:
+        bool: 是否处于低位区域
+    """
+    if kline_data is None or len(kline_data) < 2:
+        return False
+
+    # 获取最新K线（已完成）
+    latest_low = kline_data.iloc[iloc]['low']
+    if isinstance(iloc,list):
+        s = []
+        for i in iloc:
+            s.append(kline_data.iloc[i]['low'])
+        latest_low = min(s)
+    # 确定比较窗口
+    if include_self:
+        # 包含自身，取最近 lookback 根（包括 latest）
+        start_idx = - (lookback + 1)  # 因为 iloc[-2] 是 latest，需要往前多取一根
+        window = kline_data['low'].iloc[start_idx:-1]  # 不包括当前未完成的K线
+    else:
+        # 不包含自身，取 latest 之前的 lookback 根
+        start_idx = - (lookback + 2)
+        window = kline_data['low'].iloc[start_idx:-2]
+
+    if len(window) < 1:
+        return False
+
+    # 计算排名（升序，值越小排名越前）
+    sorted_lows = window.sort_values().values
+    rank = (sorted_lows == latest_low).argmax() + 1  # 最小值为第1名
+
+    # 使用排名阈值判断
+    if rank_threshold is not None:
+        if rank <= rank_threshold:
+            return True
+
+    # 使用分位数阈值判断
+    if percentile_threshold is not None:
+        # 计算分位数（例如0.2表示20%分位数）
+        quantile_value = window.quantile(percentile_threshold)
+        if latest_low <= quantile_value:
+            return True
+
+    # 如果两个阈值都未提供，默认使用排名 <= 3
+    if rank_threshold is None and percentile_threshold is None:
+        return rank <= 3
+
+    return False
+
+def is_price_at_high_zone(kline_data, lookback=20, rank_threshold=None, percentile_threshold=None, include_self=True,iloc=-2):
+    """
+    判断最新K线的最高点是否处于最近N根K线的高位区域。
+
+    Args:
+        kline_data: DataFrame，包含 'high' 列
+        lookback: 回溯K线根数（默认20）
+        rank_threshold: 排名阈值（从大到小，如3表示最高价是最近N根中的第1、2或3大）
+        percentile_threshold: 分位数阈值（0~1之间，如0.8表示最高价高于80%分位数）
+        include_self: 是否将当前K线包含在比较范围内（默认True）
+
+    Returns:
+        bool: 是否处于高位区域
+    """
+    if kline_data is None or len(kline_data) < 2:
+        return False
+
+    # 获取最新K线（已完成）的最高价
+    latest_high = kline_data.iloc[iloc]['high']
+
+    if isinstance(iloc,list):
+        s = []
+        for i in iloc:
+            s.append(kline_data.iloc[i]['high'])
+        latest_high = max(s)
+
+    # 确定比较窗口
+    if include_self:
+        start_idx = - (lookback + 1)
+        window = kline_data['high'].iloc[start_idx:-1]
+    else:
+        start_idx = - (lookback + 2)
+        window = kline_data['high'].iloc[start_idx:-2]
+
+    if len(window) < 1:
+        return False
+
+    # 计算排名（降序，值越大排名越前）
+    # 方法：将窗口数据排序（降序），找到当前值的位置
+    sorted_highs = window.sort_values(ascending=False).values
+    rank = (sorted_highs == latest_high).argmax() + 1  # 最大值为第1名
+
+    # 使用排名阈值判断
+    if rank_threshold is not None:
+        if rank <= rank_threshold:
+            return True
+
+    # 使用分位数阈值判断（例如 0.8 表示高于 80% 的数据）
+    if percentile_threshold is not None:
+        quantile_value = window.quantile(percentile_threshold)
+        if latest_high >= quantile_value:
+            return True
+
+    # 如果两个阈值都未提供，默认使用排名 <= 3
+    if rank_threshold is None and percentile_threshold is None:
+        return rank <= 3
+
+    return False
 
 def is_cross_above_boll(kline_data, lookback=20, bb_std=2.0, volume_multiplier=2):
     """
@@ -36,7 +153,7 @@ def is_cross_above_boll(kline_data, lookback=20, bb_std=2.0, volume_multiplier=2
     return cross_bb_occurred and volume_increasing and volume_surge
 
 
-def is_cross_below_boll(kline_data, lookback=20, bb_std=2.0, volume_multiplier=2):
+def is_cross_below_boll(kline_data, lookback=20, bb_std=2.0, volume_multiplier=1):
     """
     判断 latest 或 prev 是否下穿布林带下轨（空头用），并且：
     1. latest 成交量 > prev 成交量
@@ -564,6 +681,5 @@ def calculate_rsi(kline_data, column='close', period=6, position=-1):
 
     if position < 0 or position >= len(rsi_values):
         return None
-
     return rsi_values[position]
 

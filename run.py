@@ -1,11 +1,11 @@
 import asyncio
-import traceback
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Set, Tuple
 import logging
 import time
 import datetime
 import queue
 import concurrent.futures
+import requests
 from collector import BinanceKlineCollector
 from detect import detect_signal
 from config import Config, display_status
@@ -13,7 +13,7 @@ from alert_manager import AlertManager
 from keyboard_handler import KeyboardHandler
 from signal_manager import SignalManager
 from mouse_operator import MouseOperator
-import requests
+from symbol_manager import SymbolManager
 from ema_atr_manager import EmaAtrManager
 from speaking_manager import PlaySound
 import threading
@@ -58,8 +58,9 @@ class TradingSignalBot:
         self.backtesting = len(self.config.BACK_TESTING_SYMBOLS)
         self.sound_d = {}
         if os.path.exists(self.config.API_KEY_SECRET_FILE_PATH):
-            from really import xxt
-            self.times = xxt()
+            #   输入key和secret放入Config指定目录 key在上面一行 secret在下面一行，自动检查账户余额计算复利次数
+            from really import wallet
+            self.times = wallet()
 
     async def run(self):
         """运行主程序"""
@@ -111,7 +112,7 @@ class TradingSignalBot:
             await self.kline_collector.close()
 
         # 等待一小段时间让所有回调完成
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(1)
 
         logger.info("程序已关闭")
 
@@ -224,100 +225,136 @@ class TradingSignalBot:
             self.is_scanning = False
 
     @async_timer_decorator
-    async def scan_signal_signals(self) -> List[str]:
-        """扫描信号"""
-        # 保存统计信息
-        self.kline_collector.save_stats_snapshot()
+    async def scan_signal_signals(self) -> List[Dict[str, str]]:
+        """
+        扫描所有币种的多周期K线，检测交易信号。
+        策略：
+            - 按周期从大到小（如周线→15分钟）依次处理。
+            - 若某个币种在最大周期（如周线）的数据长度不足所需数量，则后续小周期直接跳过该币种。
+            - 信号需在所有周期上均满足条件才触发（累计分数达到周期总数）。
 
-        # 检查是否是首次扫描
-        first_scan = not hasattr(self.kline_collector, 'first_scan_done') or not self.kline_collector.first_scan_done
+        Returns:
+            List[Dict[str, str]]: 触发信号的币种列表，每个元素为 {'symbol': 'BTCUSDT', 'position_side': 'L' 或 'S'}
+        """
+        # ---------- 1. 准备币种列表 ----------
+        # 获取涨幅榜前列币种（根据 MIN_VOLUME 和 SYMBOLS_RANGE）
+        manager = SymbolManager(self.config.MIN_VOLUME)
+        symbols: List[str] = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
 
-        # 获取币种列表
-        try:
-            from symbol_manager import SymbolManager
-            manager = SymbolManager(self.config.MIN_VOLUME)
-            symbols = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
-            symbols = [s for s in symbols if s not in self.black_symbols_full]
-            if self.backtesting >0:
-                symbols = self.config.BACK_TESTING_SYMBOLS
-        except ImportError:
-            logger.warning("import出错，使用示例币种")
-            symbols = ['BTCUSDT']
+        # 过滤黑名单（black_symbols_full 是 set，包含如 "BTCUSDT" 的大写格式）
+        symbols = [s for s in symbols if s not in self.black_symbols_full]
 
-        # 并发获取数据
-        d = {}
-        for i in self.config.KLINE_INTERVAL_SORT:  # 最小的周期最后遍历
-            # 根据是否首次扫描决定是否使用缓存
-            use_cache = not first_scan
+        # 回测模式：使用指定的币种列表覆盖
+        if self.backtesting > 0:
+            symbols = self.config.BACK_TESTING_SYMBOLS   # 类型: List[str]
 
-            # 修改 fetch_all_kline 函数也需要传入 use_cache 参数
-            results_aw = await fetch_all_kline(
-                symbols,
-                i,
-                self.config.KLINE_LIMIT,
-                self.config.MAX_RETRIES,
-                self.kline_collector,
-                use_cache,
-                endtime = self.endtime
+        if not symbols:
+            logger.warning("无有效币种，跳过本次扫描")
+            return ['BTCUSDT']
+
+        # ---------- 2. 并发获取所有周期的K线数据 ----------
+        # first_scan_done 标记是否已完成首次全量拉取（用于控制缓存策略）
+        first_scan: bool = not getattr(self.kline_collector, 'first_scan_done', False)
+
+        # 用于存储各周期的结果，结构: { interval: List[{'symbol': str, 'data': pd.DataFrame, 'success': bool}] }
+        all_periods_data: Dict[str, List[Dict[str, Any]]] = {}
+
+        for interval in self.config.KLINE_INTERVAL_SORT:   # 已按周期降序排列，如 ['1w', '15m']
+            limit: int = Config.get_kline_limit(interval)   # 根据周期获取所需K线数量
+            use_cache: bool = not first_scan                # 首次扫描禁用缓存，全量拉取
+
+            results = await fetch_all_kline(
+                symbols=symbols,
+                interval=interval,
+                limit=limit,
+                max_retries=self.config.MAX_RETRIES,
+                collector=self.kline_collector,
+                use_cache=use_cache,
+                endtime=self.endtime
             )
-            d.update({i: results_aw})
-        data_legal_length = (len(d.get(self.config.KLINE_INTERVAL_SORT[0])))
+            all_periods_data[interval] = results
 
-        # 如果是首次扫描，标记已完成
+        # 首次扫描完成后，标记后续可使用增量更新
         if first_scan:
             self.kline_collector.first_scan_done = True
-            # logger.info("✅ 首次扫描完成，已缓存所有K线数据，后续将使用增量更新")
 
-        # 打印本次扫描的流量统计
+        # ---------- 3. 统计流量信息（可选，保留原有日志）----------
         total_mb = self.kline_collector.total_bytes / (1024 * 1024)
         once_mb = (self.kline_collector.total_bytes - self.kline_collector.before_bytes) / (1024 * 1024)
+        data_legal_length = len(all_periods_data.get(self.config.KLINE_INTERVAL_SORT[0], []))
         logger.info(
             f"📊 本次扫描流量: 请求 {self.kline_collector.request_count - self.kline_collector.before_request_count} 次 | "
-            f"本次接收数据: {once_mb:.2f} MB | "
-            f"运行累计流量：{total_mb:.2f} MB | "
-            f"获得{data_legal_length} / {self.config.SYMBOLS_RANGE[1]} 品种数据")
+            f"本次接收数据: {once_mb:.2f} MB | 运行累计流量: {total_mb:.2f} MB | "
+            f"获得{data_legal_length} / {self.config.SYMBOLS_RANGE[1]} 品种数据"
+        )
 
-        # 检测信号
-        signal_d = {}
-        for i in symbols:
-            signal_d.update({i: [0, None]})
-        signal_symbols = []
-        for interval, results in d.items():
-            for result in results:
-                if result['success']:
-                    # 检测信号，自动记录且检查重复
-                    has_signal = detect_signal(
-                        interval,
-                        result,
-                    )
-                    if has_signal[0]:  # (1 , -1)  or 0
-                        n = signal_d.get(result['symbol'])[0] + has_signal[0]
-                        signal_d.update({result['symbol']: [n, result]})
-        count = len(self.config.KLINE_INTERVAL)
-        #  signal_d 保留的是最小周期的K线数据
-        for k, v in signal_d.items():    # k == result['symbol']->str  v == [signal_n,result]->list
+        # ---------- 4. 信号检测（按周期从大到小，支持大周期不足则跳过）----------
+        # signal_accumulator: Dict[symbol, [累计信号强度, 最后一次成功的result数据]]
+        signal_accumulator: Dict[str, List[Any]] = {symbol: [0, None] for symbol in symbols}
 
-            if v[0] >= count or v[0] <= -count:
-                if v[0] >=count:
-                    position_side = 'L'
-                    self.sound_d.update({k: '做多'})
-                else:
-                    position_side = 'S'
-                    self.sound_d.update({k: '做空'})
+        # 记录因大周期数据不足而需要跳过的币种
+        skip_symbols: Set[str] = set()
 
-                self.recorder(result=v[1],position_side=position_side, record_signal=self.config.RECORDER_AVAILABLE)
-                if '\u4e00' <= k <= '\u9fff':
-                    logger.debug(f'已删除中文品种{k}')
-                else:
-                    signal_symbols.append({'symbol':k,'position_side':position_side})
+        # 最大周期（列表第一个，即降序最大的周期，如 '1w'）
+        largest_interval: str = self.config.KLINE_INTERVAL_SORT[0]
 
-        # 更新信号管理器并输出表格
-        try:
-            self.signal_manager.update_signals(signal_symbols,signal_d)
-        except Exception as e:
-            traceback.print_exc()
-            raise
-        return signal_symbols
+        for interval in self.config.KLINE_INTERVAL_SORT:
+            period_results: List[Dict[str, Any]] = all_periods_data[interval]
+
+            for res in period_results:
+                symbol: str = res['symbol']
+                if not res['success'] or res['data'] is None:
+                    continue
+
+                # 如果该币种已被标记跳过（大周期数据不足），则直接忽略后续所有周期
+                if symbol in skip_symbols:
+                    continue
+
+                # 大周期（最大周期）的数据长度检查
+                if interval == largest_interval:
+                    required_len: int = Config.get_kline_limit(interval)
+                    if len(res['data']) < required_len:
+                        # 大周期数据不足，标记该币种跳过后续所有小周期
+                        skip_symbols.add(symbol)
+                        continue   # 该币种本次不产生信号
+
+                # 调用信号检测函数
+                has_signal: Tuple[int, Optional[str]] = detect_signal(interval, res)
+                if has_signal[0] != 0:
+                    # 累加信号强度（1 表示做多，-1 表示做空）
+                    current_strength = signal_accumulator[symbol][0] + has_signal[0]
+                    signal_accumulator[symbol] = [current_strength, res]
+
+        # ---------- 5. 汇总满足全部周期信号的币种 ----------
+        total_periods: int = len(self.config.KLINE_INTERVAL)   # 需要所有周期都产生信号
+        triggered_symbols: List[Dict[str, str]] = []
+        self.sound_d.clear()   # 清空声音字典，准备本次信号
+
+        for symbol, (strength, result_data) in signal_accumulator.items():
+            # 信号强度绝对值等于周期总数，表示所有周期方向一致（全多或全空）
+            if strength >= total_periods:
+                position_side = 'L'   # 多头
+                self.sound_d[symbol] = '做多'
+            elif strength <= -total_periods:
+                position_side = 'S'   # 空头
+                self.sound_d[symbol] = '做空'
+            else:
+                continue   # 未达成一致信号
+
+            # 记录信号到数据库（如果启用）
+            self.recorder(result=result_data, position_side=position_side,
+                          record_signal=self.config.RECORDER_AVAILABLE)
+
+            # 过滤中文名称（极少情况，保留原逻辑）
+            if '\u4e00' <= symbol <= '\u9fff':
+                logger.debug(f'已删除中文品种{symbol}')
+            else:
+                triggered_symbols.append({'symbol': symbol, 'position_side': position_side})
+
+        # 更新信号管理器（用于键盘交互和界面显示）
+        self.signal_manager.update_signals(triggered_symbols, signal_accumulator)
+
+        return triggered_symbols
 
     def recorder(self,result: dict , position_side:str ,record_signal: bool = True, check_duplicate: bool = True):
         # 如果有信号且需要记录
