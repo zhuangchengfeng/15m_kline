@@ -1,9 +1,53 @@
 import pygetwindow as gw
-import time
-
-import logging
 from functools import wraps
+import time
+import logging
 from datetime import datetime, timezone, timedelta
+import config
+from binance.um_futures import UMFutures
+
+UM_CLIENT = UMFutures(proxies={
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890"
+})
+
+
+def get_server_time_ms():
+    """获取服务器时间（毫秒时间戳）"""
+    client = UM_CLIENT
+    resp = client.time()
+    return resp['serverTime']
+
+def ms_to_datetime(ms):
+    """毫秒时间戳转本地 datetime 对象"""
+    return datetime.fromtimestamp(ms / 1000.0)
+
+def compare_times():
+    """对比本地时间与服务器时间，输出差值（秒）"""
+    local_before = time.time() * 1000
+    server_ms = get_server_time_ms()
+    local_after = time.time() * 1000
+
+    local_estimate = (local_before + local_after) / 2
+    diff_ms = server_ms - local_estimate
+    print(f"服务器时间: {ms_to_datetime(server_ms)}")
+    print(f"本地估算时间: {datetime.fromtimestamp(local_estimate / 1000)}")
+    print(f"时间差: {diff_ms / 1000:.3f} 秒 (服务器时间 - 本地时间)")
+    return diff_ms
+
+def run_time_sync_monitor(iterations=10, interval=1):
+    """
+    封装的时间同步监控方法
+    :param iterations: 对比次数
+    :param interval: 每次对比间隔（秒）
+    """
+    print(f"开始时间同步监控，共 {iterations} 次，间隔 {interval} 秒\n")
+    for i in range(iterations):
+        print(f"--- 第 {i+1} 次 ---")
+        diff = compare_times()
+        if i < iterations - 1:
+            time.sleep(interval)
+    print("\n监控结束")
 
 
 def get_timestamp(year, month, day, hour, minute, tz='Asia/Shanghai'):
@@ -77,8 +121,6 @@ def monitor_active_window(interval=1):
         time.sleep(interval)
 
 
-from functools import wraps
-import time
 
 
 def async_timer_decorator(func):
@@ -126,3 +168,5 @@ def timestamp_to_beijing_str(timestamp_ms: float) -> str:
         return datetime.now(BEIJING_TZ).strftime("%Y/%m/%d %H:%M:%S")
 
 
+if __name__ == '__main__':
+    run_time_sync_monitor()

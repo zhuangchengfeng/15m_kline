@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import requests
 from datetime import timezone, timedelta
 import logging
-from binance.um_futures import UMFutures
 import datetime
 import time
 # 导入信号记录器
@@ -85,11 +84,6 @@ def get_exchange_info():
 # 配置类
 @dataclass
 class Config:
-    UM_CLIENT = UMFutures(proxies={
-        "http": "http://127.0.0.1:7890",
-        "https": "http://127.0.0.1:7890"
-    })
-
 
 
     RATELIMIT = get_exchange_info().get('rateLimits')[0].get('limit')
@@ -111,12 +105,12 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['15m','1w']   #修改detect时一定要注意  保证这里出现的周期和detect出现的一致
+    KLINE_INTERVAL = ['3m','1w']   #修改detect时一定要注意  保证这里出现的周期和detect出现的一致
     MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
-    SYMBOLS_RANGE = (1, 2)  # 取涨幅榜前1到品种
+    SYMBOLS_RANGE = (1, 150)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG']
     BLACK_SYMBOL_LIST = []
-    # END_TIME = get_timestamp(2026, 4, 16, 21, 30)    #:int ms  用于回测，输入结束时间判断K线信号
+    # END_TIME = get_timestamp(2026, 4, 17, 16, 30)    #:int ms  用于回测，输入结束时间判断K线信号
     END_TIME = None
     BACK_TESTING_SYMBOLS = []  #不回测时请清空
     #  ---------------------------------------------------------#
@@ -129,26 +123,30 @@ class Config:
         return logging.DEBUG if self.SCAN_INTERVALS_DEBUG else logging.INFO
 
     SC = datetime.datetime.now().second
-    MAX_RETRIES = 2
+    MAX_RETRIES = 3
     TIMEOUT = 10
     PROXY = 'http://127.0.0.1:7890'
     PROXY_D = {"http": 'http://127.0.0.1:7890', "https": 'http://127.0.0.1:7890'}
 
     #  ---------------------------------------------------------#
-    # 原来的 KLINE_LIMIT = 385 # [1,100)	1 ,[100, 500)	2 ,[500, 1000]	5 ,> 1000	10
+    # 原来的 KLINE_LIMIT = 385
     # 改为字典，根据周期设置不同的保留K线数量
     KLINE_LIMIT = {
+        '1m':385,
         '15m': 385,  # 15分钟周期保留385根（约4天）
+        '1h':385,
         '1w': 6,  # 周线保留6根（约6周）
-        # 其他周期可以添加默认值
+        # 其他周期可以添加默认值 # [1,100) 1 ,[100, 500) 2 ,[500, 1000] 5 ,> 1000 10
     }
 
     @classmethod
-    def get_kline_limit(self, interval: str, default: int = 385) -> int:
+    def get_kline_limit(self, interval: str, default: int = 6) -> int:
         """根据K线周期返回需要保留的K线数量"""
         return self.KLINE_LIMIT.get(interval, default)
 
     KLINE_LIMIT_UPDATE = 6  # 增量更新最小K线  节省流量
+    USE_DERIVED_MODE = True  # True: 大周期由小周期派生（默认模式）；False: 大周期直接请求API（非默认模式）
+
     #  ---------------------------------------------------------#
 
     UTC_TZ = timezone.utc
@@ -162,7 +160,7 @@ class Config:
     M1 = False
     if '1m' not in KLINE_INTERVAL and M1 == True:
         KLINE_INTERVAL_SORT.append('1m')
-    SCAN_SECOND_DELAY = range(3,9)  # 扫描时间点（秒） list or int type
+    SCAN_SECOND_DELAY = range(8,58)  # 扫描时间点（秒） list or int type
     SCAN_INTERVALS = interval_divide().get(KLINE_INTERVAL_SORT[-1])
     EMA_ATR_INFO = False
     PLAY_SOUND = True
@@ -177,7 +175,7 @@ class Config:
         AFTER_TIME_HOUR = 4
         duplicate_window = INTERVAL_TO_MIN.get(KLINE_INTERVAL_SORT[-1])
         signal_recorder = SignalRecorder(hour=AFTER_TIME_HOUR,duplicate_window=duplicate_window)
-        RECORDER_AVAILABLE = False if len(BACK_TESTING_SYMBOLS) >0 else False
+        RECORDER_AVAILABLE = False if len(BACK_TESTING_SYMBOLS) >0 else True
         RECORDER_LOGGER = False
     except ImportError:
         import traceback

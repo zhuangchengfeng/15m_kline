@@ -102,18 +102,7 @@ class EmaAtrManager:
                     close_prices = [float(k[4]) for k in klines]
                     klines_list = klines
             else:
-                # 从API获取数据
-                klines_raw = Config.UM_CLIENT.klines(
-                    symbol=symbol,
-                    interval=interval,
-                    limit=limit
-                )
-
-                if len(klines_raw) < 61:
-                    return {"error": f"API数据不足，需要至少60条K线，当前只有{len(klines_raw)}条"}
-
-                close_prices = [float(k[4]) for k in klines_raw]
-                klines_list = klines_raw
+                return None
 
             # 计算EMA60
             ema60_values = self.calculate_ema(close_prices, 60)

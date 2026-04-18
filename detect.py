@@ -10,13 +10,24 @@ logger = logging.getLogger(__name__)
 
 
 
-def detect_signal(interval_check, result: dict) -> tuple:
+def detect_signal(interval_check, result: dict, all_periods_data=None) -> tuple:
     """
     检测形态并可选地记录信号
 
     Args:
         interval_check: '1h' '15m' '1d' '4h'
         result: K线数据 DICT
+        all_periods_data:所有品种所有周期数据
+        all_periods_data = {
+            '1m': [
+                {'symbol': 'BTCUSDT', 'data': DataFrame_1m_BTC, 'success': True},
+                {'symbol': 'ETHUSDT', 'data': DataFrame_1m_ETH, 'success': True}
+            ],
+            '1w': [
+                {'symbol': 'BTCUSDT', 'data': DataFrame_1w_BTC, 'success': True},
+                {'symbol': 'ETHUSDT', 'data': None, 'success': False}
+            ]
+        }
     Returns:
         tuple: 是否有信号 (1/-1, 文本) 或 (0, None)
     """
@@ -51,7 +62,6 @@ def detect_signal(interval_check, result: dict) -> tuple:
             # 计算实体长度和下影线长度
             body = abs(latest['close'] - latest['open'])
             lower_shadow = min(latest['open'], latest['close']) - latest['low']
-
             # 分支1：强下影线 + 穿刺 + 阶段低点
             if body < lower_shadow or (price_power(1) and volume_power(1)):
                 if smc.detect_engulfing_pierce(kline_data,logic_mode='shadow')[0]:
