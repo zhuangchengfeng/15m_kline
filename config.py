@@ -105,12 +105,12 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['3m','1w']   #修改detect时一定要注意  保证这里出现的周期和detect出现的一致
+    KLINE_INTERVAL = ['15m','1w']   #修改detect时一定要注意  保证这里出现的周期和detect出现的一致
     MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 150)  # 取涨幅榜前1到品种
-    POSITION_SIDE = ['LONG']
+    POSITION_SIDE = ['LONG','SHORT']
     BLACK_SYMBOL_LIST = []
-    # END_TIME = get_timestamp(2026, 4, 17, 16, 30)    #:int ms  用于回测，输入结束时间判断K线信号
+    # END_TIME = get_timestamp(2026, 4, 21, 3, 30)    #:int ms  用于回测，输入结束时间判断K线信号
     END_TIME = None
     BACK_TESTING_SYMBOLS = []  #不回测时请清空
     #  ---------------------------------------------------------#

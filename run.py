@@ -41,7 +41,10 @@ class TradingSignalBot:
         self.black_symbols_full = set([f"{s.strip().upper()}USDT" for s in self.black_list['symbols']])
 
         self.signal_manager = SignalManager()
+
         self.keyboard_handler = KeyboardHandler()
+        self._keyboard_task = None          # 新增：保存键盘监听任务
+
         self.alert_manager = AlertManager()
         self.kline_collector = BinanceKlineCollector(config.PROXY)
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
@@ -74,6 +77,8 @@ class TradingSignalBot:
         # 启动键盘监听
         self.keyboard_handler.start()
 
+        self._keyboard_task = asyncio.create_task(self._keyboard_listener())
+
         if self.config.SCAN_ON_START:
             # 启动时立即执行一次扫描
             logger.info("🚀 执行首次扫描")
@@ -102,6 +107,14 @@ class TradingSignalBot:
         for task in tasks:
             task.cancel()
 
+        # 取消键盘监听任务
+        if self._keyboard_task and not self._keyboard_task.done():
+            self._keyboard_task.cancel()
+            try:
+                await self._keyboard_task
+            except asyncio.CancelledError:
+                pass
+
         # 等待所有任务取消完成
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
@@ -117,6 +130,28 @@ class TradingSignalBot:
         await asyncio.sleep(1)
 
         logger.info("程序已关闭")
+
+    async def _keyboard_listener(self):
+        loop = asyncio.get_running_loop()
+        while self.running:
+            try:
+                # 使用带超时的 get，避免永久阻塞
+                event = await loop.run_in_executor(
+                    None,
+                    lambda: self.keyboard_handler.key_press_queue.get(timeout=0.1)
+                )
+                if event == 'execute_next':
+                    await self.execute_and_move_next()
+                elif event == 'execute_previous':
+                    await self.execute_and_move_previous()
+            except queue.Empty:
+                # 超时后继续循环，检查 self.running
+                continue
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"键盘监听任务错误: {e}")
+                await asyncio.sleep(0.1)
 
     async def main_loop(self):
         """主循环"""
@@ -135,13 +170,7 @@ class TradingSignalBot:
         """处理每个周期"""
         now = datetime.datetime.now()
 
-        # 处理键盘事件
-        await self.handle_keyboard_events()
-        if un_check:
-            # 检查是否需要扫描
-            check = True
-        else:
-            check = self.should_scan(now)
+        check = un_check or self.should_scan(now)
 
         if check:
             await self.perform_scan(now)
@@ -325,6 +354,11 @@ class TradingSignalBot:
                         endtime=self.endtime
                     )
                     all_periods_data[interval] = results
+        if len(self.config.BACK_TESTING_SYMBOLS) >0:
+            # 假设你的数据存放在变量 all_periods_data 中
+            for i in self.config.KLINE_INTERVAL_SORT[::-1]:
+                # 将其他大周期close转化为15分钟倒数第二根收盘
+                all_periods_data[i][0]['data'].at[all_periods_data[i][0]['data'].index[-1],'close'] = all_periods_data[self.config.KLINE_INTERVAL_SORT[-1]][0]['data'].iloc[-2]['close']
 
         # ---------- 3. 统计流量 ----------
         total_mb = self.kline_collector.total_bytes / (1024 * 1024)
@@ -381,7 +415,6 @@ class TradingSignalBot:
                 #all_periods_data['15m'] =
                 # [{'symbol': 'BTCUSDT', 'data': df_btc, 'success': True},
                 # {'symbol': 'ETHUSDT', 'data': None, 'success': False}]
-
                 has_signal = detect_signal(interval, res, all_periods_data)
 
                 if has_signal[0] != 0:
@@ -489,26 +522,7 @@ class TradingSignalBot:
                 except Exception as e2:
                     logger.error(f"❌ 备选时间记录也失败: {e2}")
 
-    async def handle_keyboard_events(self):
-        """处理键盘事件"""
-        try:
-            if self.keyboard_handler.key_press_queue.empty():
-                return
 
-            event = self.keyboard_handler.key_press_queue.get_nowait()
-
-            if event == 'execute_next':
-                await self.execute_and_move_next()
-
-            elif event == 'execute_previous':
-                await self.execute_and_move_previous()
-
-        except queue.Empty:
-            pass
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            logger.error(f"键盘事件处理错误: {e}")
 
     async def execute_and_move_next(self):
         """执行当前信号并移动到下一个"""

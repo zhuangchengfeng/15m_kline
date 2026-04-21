@@ -43,7 +43,6 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> tuple:
 
     def volume_power(x):
         return latest['volume'] >= (prev['volume'] * x)
-
     # 长影线阈值：影线长度占整根K线长度的比例
     # ========== 多头（LONG） ==========
     if 'LONG' in Config.POSITION_SIDE:
@@ -74,10 +73,12 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> tuple:
                 if smc.detect_engulfing_pierce(kline_data,logic_mode='body')[0]:
                     return (1, '做多')
 
+            # 分支3：站上EMA60 + 阴阳转换 + 回踩 + 上方无压力位 + 低位回调  （捕捉单边）
     # ========== 空头（SHORT） ==========
     if 'SHORT' in Config.POSITION_SIDE:
         # 周线信号：当前K线为阴线
         if interval_check == '1w':
+
             current = kline_data.iloc[-1]
             if current['close'] < current['open']:
                 return (-1, '做空')
