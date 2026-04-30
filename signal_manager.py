@@ -57,7 +57,7 @@ class SignalManager:
         # 初始化时归档旧的信号文件
 
 
-    def update_signals(self, symbols: List, signal_d: Dict):
+    def update_signals(self, symbols: List, signal_d: Dict, signal_txt_marker):
         data = pd.read_csv('price.csv')
 
         # 加载当天的JSON文件统计信号次数
@@ -134,9 +134,9 @@ class SignalManager:
                             count = counts['L']
                         else:
                             count = counts['S']
-
+                        txt = signal_txt_marker[get_symbol]
                         # 构建显示项，添加信号次数
-                        item = f"{get_symbol} {get_position_side} {colored_percent_txt} [{count}]"
+                        item = f"{get_symbol} {get_position_side} {colored_percent_txt} [{count}] {txt}"
 
                         # 对齐显示
                         padded_item = item.ljust(col_widths[col])

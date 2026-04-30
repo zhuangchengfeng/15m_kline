@@ -3,13 +3,9 @@ from functools import wraps
 import time
 import logging
 from datetime import datetime, timezone, timedelta
-import config
 from binance.um_futures import UMFutures
+import os
 
-UM_CLIENT = UMFutures(proxies={
-    "http": "http://127.0.0.1:7890",
-    "https": "http://127.0.0.1:7890"
-})
 
 
 def get_server_time_ms():

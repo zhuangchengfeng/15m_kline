@@ -3,8 +3,6 @@ import json
 import asyncio
 import aiohttp
 import sys
-from datetime import datetime
-from config import Config
 from collections import defaultdict
 import warnings
 
@@ -525,6 +523,7 @@ if __name__ == '__main__':
     from datetime import datetime
 
     # 获取当前日期，格式：2026-04-07
-    file = f"{datetime.now().strftime('%Y-%m-%d')}.json"
+    # file = f"{datetime.now().strftime('%Y-%m-%d')}.json"
+    file = f"2026-04-29.json"
     print(file)
     main(file)

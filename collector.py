@@ -24,6 +24,7 @@ def aggregate_to_larger_interval(df_small: pd.DataFrame, target_interval: str) -
     rule_map = {
         '1d': '1D',
         '1w': '1W-MON',
+        '1h': '1H',
     }
     rule = rule_map.get(target_interval)
     if not rule:

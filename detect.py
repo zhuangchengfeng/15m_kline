@@ -4,19 +4,20 @@ from config import Config
 from ema_atr_manager import EmaAtrManager
 import config as cf
 import structure
-import smc   #付费使用包 VX：Tugzcf
+import smc   #付费5USDT使用包 VX：Tugzcf
+import numpy as np
 ema_atr = EmaAtrManager()
 logger = logging.getLogger(__name__)
 
 
 
-def detect_signal(interval_check, result: dict, all_periods_data=None) -> tuple:
+def detect_signal(interval_check, result: dict, all_periods_data=None) -> list:
     """
     检测形态并可选地记录信号
 
     Args:
         interval_check: '1h' '15m' '1d' '4h'
-        result: K线数据 DICT
+        result: 某个品种symbol的K线数据 DICT
         all_periods_data:所有品种所有周期数据
         all_periods_data = {
             '1m': [
@@ -33,7 +34,11 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> tuple:
     """
     has_signal = (0, None)
     symbol = result['symbol']
+    # print(symbol)
+    # print(all_periods_data)
     kline_data = result['data']
+    target_dict_1h = next((d for d in all_periods_data.get('1h') if d.get('symbol') == symbol), None)
+
     required_len = Config.get_kline_limit(interval_check)
     if kline_data is None or len(kline_data) < required_len:
         return (0, None)
@@ -50,62 +55,60 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> tuple:
         if interval_check == '1w':
             current = kline_data.iloc[-1]
             if current['close'] > current['open']:
-                return (1, '做多')
-        # 15分钟信号：最新K线具有很长的下影线
+                return [1, '做多','1w_']
+        if interval_check =='1h':
+            return [1, '做多','1h_pass_']
         if interval_check == '15m':
-            latest = kline_data.iloc[-2]   # 最新已完成的K线
+            latest = kline_data.iloc[-2]  # 最新已完成的15m K线
             prev = kline_data.iloc[-3]
+            engulf_prices_15m = smc.get_engulfing_prices(kline_data)
 
-            close_prices = kline_data['close'].astype(float).tolist()
-            ema60 = ema_atr.calculate_ema(prices=close_prices, period=60)[-2]
-            # 计算实体长度和下影线长度
-            body = abs(latest['close'] - latest['open'])
-            lower_shadow = min(latest['open'], latest['close']) - latest['low']
-            # 分支1：强下影线 + 穿刺 + 阶段低点
-            if body < lower_shadow or (price_power(1) and volume_power(1)):
-                if smc.detect_engulfing_pierce(kline_data,logic_mode='shadow')[0]:
-                    low_zone = structure.is_price_at_low_zone(kline_data,lookback=4, rank_threshold=1, iloc=[-2,-3])  #经历了至少一小时的回调，阶段低点
+            # 获取1h的吞没价格数组
+            if target_dict_1h is not None and target_dict_1h.get('data') is not None:
+                kline_1h = target_dict_1h['data']
+                # 获取1h的吞没价格（看涨价格放long，看跌价格放short）
+                engulf_prices_1h = smc.get_engulfing_prices(kline_1h)
+                engulf_data = smc.get_engulfing_prices_with_indices(kline_1h)
+                long_prices = engulf_data['long']['prices']
+                long_indices = engulf_data['long']['indices']
+                lower, upper = smc.find_nearest_bounds(latest['close'], long_prices)
+                if lower is not None and upper is not None:
+                    idx_candidates = long_indices[long_prices == upper]
+                    target_idx = idx_candidates[-1]  # 取最新的那个吞没K线
+                elif lower is not None and upper is None:
+                    # 15m收盘价高于所有历史吞没价格 → 视为强势突破（无假突破过滤）
+                    target_idx = None
+                    pass
+                elif lower is None and upper is not None:
+                    # 15m收盘价低于所有历史吞没价格 → 下方无支撑，可能深跌，可按空头逻辑处理
+                    return has_signal
+                else:
+                    return has_signal
+            else:
+                return has_signal
+
+            pierce = smc.check_pierce_engulfing(latest, engulf_prices_1h['long'], mode='long')
+            if pierce:
+                low_zone = structure.is_price_at_low_zone(kline_data, lookback=4, rank_threshold=1, iloc=[-2])
+                if low_zone:
+                    fake_break = smc.check_fake_break_upward(kline_1h, target_idx, upper, min_confirm_bars=6)
+                    if not fake_break:
+                    # 其它辅助条件：阶段低点等
+                        return [1, '做多', '15m_2_']
+
+            red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
+            if red_green:
+                if price_power(1):
+                    low_zone = structure.is_price_at_low_zone(kline_data,lookback=4, rank_threshold=1, iloc=[-2])
                     if low_zone:
-                        return (1, '做多')
+                        break_15m = smc.check_break_engulfing(prev, latest, engulf_prices_15m['long'])
+                        break_1h = smc.check_break_engulfing(prev, latest, engulf_prices_1h['long'])
+                        if break_15m and break_1h:
+                            return [1, '做多', '_15m_2break_1h_and']
 
-            # 分支2：站上EMA60 + 实体突破看跌吞没阻力
-            if latest['close'] >= ema60:
-                if smc.detect_engulfing_pierce(kline_data,logic_mode='body')[0]:
-                    return (1, '做多')
-
-            # 分支3：站上EMA60 + 阴阳转换 + 回踩 + 上方无压力位 + 低位回调  （捕捉单边）
-    # ========== 空头（SHORT） ==========
-    if 'SHORT' in Config.POSITION_SIDE:
-        # 周线信号：当前K线为阴线
-        if interval_check == '1w':
-
-            current = kline_data.iloc[-1]
-            if current['close'] < current['open']:
-                return (-1, '做空')
-
-        # 15分钟信号：最新K线具有很长的上影线
-        if interval_check == '15m':
-            latest = kline_data.iloc[-2]  # 最新已完成的K线
-            prev = kline_data.iloc[-3]
-
-            close_prices = kline_data['close'].astype(float).tolist()
-            ema60 = ema_atr.calculate_ema(prices=close_prices, period=60)[-2]
-
-            # 计算实体长度和上影线长度
-            body = abs(latest['close'] - latest['open'])
-            upper_shadow = latest['high'] - max(latest['open'], latest['close'])
-
-            # 分支1：强上影线 + 空头穿刺 + 阶段高点
-            if body < upper_shadow or (price_power(1) and volume_power(1)):
-                # 空头影线穿刺：使用 detect_engulfing_pierce 的第二个返回值（看跌穿刺）
-                if smc.detect_engulfing_pierce(kline_data, logic_mode='shadow')[1]:
-                    high_zone = structure.is_price_at_high_zone(kline_data, lookback=4, rank_threshold=1, iloc=[-2, -3])
-                    if high_zone:
-                        return (-1, '做空')
-
-            # 分支2：跌破EMA60 + 实体突破看涨吞没支撑（空头使用 body 模式的第二个返回值）
-            if latest['close'] <= ema60:
-                if smc.detect_engulfing_pierce(kline_data, logic_mode='body')[1]:
-                    return (-1, '做空')
-
-    return has_signal
+            if price_power(3): #23:38:13 - INFO -   API3USDT L ... [1] 1w_1h_pass_15m_2_ | PENDLEUSDT L .
+                break_15m = smc.check_break_engulfing(prev, latest, engulf_prices_15m['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_15m['long'])
+                break_1h = smc.check_break_engulfing(prev, latest, engulf_prices_1h['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_1h['long'])
+                if break_15m and break_1h:
+                    return [1, '做多', '_15m_hopestar_1h_and']
+        return has_signal

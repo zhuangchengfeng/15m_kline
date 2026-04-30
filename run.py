@@ -7,8 +7,12 @@ import queue
 import concurrent.futures
 import requests
 from collector import BinanceKlineCollector
-from detect import detect_signal
 from config import Config, display_status
+if Config.POLY_MARKET:
+    from detect_pm import detect_signal
+else:
+    from detect import detect_signal
+
 from alert_manager import AlertManager
 from keyboard_handler import KeyboardHandler
 from signal_manager import SignalManager
@@ -277,11 +281,15 @@ class TradingSignalBot:
         """
 
         # ---------- 1. 准备币种列表 ----------
-        manager = SymbolManager(self.config.MIN_VOLUME)
-        symbols: List[str] = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
-        symbols = [s for s in symbols if s not in self.black_symbols_full]
-        if self.backtesting > 0:
-            symbols = self.config.BACK_TESTING_SYMBOLS
+        if not  self.config.POLY_MARKET:
+            manager = SymbolManager(self.config.MIN_VOLUME)
+            symbols: List[str] = manager.get_top_gainers_symbols(*self.config.SYMBOLS_RANGE)
+            symbols = [s for s in symbols if s not in self.black_symbols_full]
+            if self.backtesting > 0:
+                symbols = self.config.BACK_TESTING_SYMBOLS
+        else:
+            symbols=['BTCUSDT']
+
         if not symbols:
             logger.warning("无有效币种，跳过本次扫描")
             return []
@@ -392,6 +400,7 @@ class TradingSignalBot:
 
         # ---------- 4. 信号检测 ----------
         signal_accumulator: Dict[str, List[Any]] = {symbol: [0, None] for symbol in symbols}
+        signal_txt_marker = {}
         skip_symbols: Set[str] = set()
         largest_interval: str = self.config.KLINE_INTERVAL_SORT[0]
 
@@ -416,11 +425,15 @@ class TradingSignalBot:
                 # [{'symbol': 'BTCUSDT', 'data': df_btc, 'success': True},
                 # {'symbol': 'ETHUSDT', 'data': None, 'success': False}]
                 has_signal = detect_signal(interval, res, all_periods_data)
-
                 if has_signal[0] != 0:
                     current_strength = signal_accumulator[symbol][0] + has_signal[0]
                     signal_accumulator[symbol] = [current_strength, res]
+                    if signal_txt_marker.get(symbol) is None:
 
+                        signal_txt_marker[symbol] = has_signal[2]
+                    else:
+                        new_txt = signal_txt_marker[symbol] + has_signal[2]
+                        signal_txt_marker[symbol] = new_txt
         # ---------- 5. 汇总信号 ----------
         total_periods = len(self.config.KLINE_INTERVAL)
         triggered_symbols = []
@@ -441,7 +454,7 @@ class TradingSignalBot:
             else:
                 triggered_symbols.append({'symbol': symbol, 'position_side': position_side})
 
-        self.signal_manager.update_signals(triggered_symbols, signal_accumulator)
+        self.signal_manager.update_signals(triggered_symbols, signal_accumulator,signal_txt_marker)
 
         return triggered_symbols
 
