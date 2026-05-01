@@ -94,7 +94,7 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> list:
                     fake_break = smc.check_fake_break_upward(kline_1h, target_idx, upper, min_confirm_bars=6)
                     if not fake_break:
                     # 其它辅助条件：阶段低点等
-                        return [1, '做多', '15m_2_']
+                        return [1, '做多', '15m_pierce']
 
             red_green = (latest['close'] > latest['open']) and (prev['close'] < prev['open'])
             if red_green:
@@ -104,11 +104,11 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> list:
                         break_15m = smc.check_break_engulfing(prev, latest, engulf_prices_15m['long'])
                         break_1h = smc.check_break_engulfing(prev, latest, engulf_prices_1h['long'])
                         if break_15m and break_1h:
-                            return [1, '做多', '_15m_2break_1h_and']
+                            return [1, '做多', '_15m_2break']
 
             if price_power(3): #23:38:13 - INFO -   API3USDT L ... [1] 1w_1h_pass_15m_2_ | PENDLEUSDT L .
-                break_15m = smc.check_break_engulfing(prev, latest, engulf_prices_15m['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_15m['long'])
-                break_1h = smc.check_break_engulfing(prev, latest, engulf_prices_1h['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_1h['long'])
+                break_15m = smc.check_break_engulfing(prev, latest, engulf_prices_15m['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_15m['long'],k_form='hope_star')
+                break_1h = smc.check_break_engulfing(prev, latest, engulf_prices_1h['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_1h['long'],k_form='hope_star')
                 if break_15m and break_1h:
-                    return [1, '做多', '_15m_hopestar_1h_and']
+                    return [1, '做多', '_15m_hopestar']
         return has_signal

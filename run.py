@@ -295,12 +295,13 @@ class TradingSignalBot:
             return []
 
         # ---------- 2. 获取K线数据 ----------
+        is_backtest = self.backtesting > 0  # 判断是否为回测模式
         first_scan: bool = not self.kline_collector.first_scan_done
         all_periods_data: Dict[str, List[Dict[str, Any]]] = {}
 
-        if first_scan:
-            # 首次扫描：请求所有周期（全量）
-            logger.info("首次扫描，请求所有周期API数据")
+        # 回测模式 或 首次扫描：全量请求所有周期，不使用缓存，强制 endtime
+        if is_backtest or first_scan:
+            logger.info("回测模式或首次扫描，请求所有周期API数据（use_cache=False）")
             for interval in self.config.KLINE_INTERVAL_SORT:
                 limit = Config.get_kline_limit(interval)
                 results = await fetch_all_kline(
@@ -309,13 +310,15 @@ class TradingSignalBot:
                     limit=limit,
                     max_retries=self.config.MAX_RETRIES,
                     collector=self.kline_collector,
-                    use_cache=False,
-                    endtime=self.endtime
+                    use_cache=False,  # 强制不使用缓存
+                    endtime=self.endtime  # 固定回测结束时间
                 )
                 all_periods_data[interval] = results
-            self.kline_collector.first_scan_done = True
+            # 只在非回测模式下标记 first_scan_done = True，回测模式下永远全量
+            if not is_backtest:
+                self.kline_collector.first_scan_done = True
         else:
-            # 后续扫描
+            # 正常实时模式的后续扫描逻辑（保持不变）
             small_interval = self.kline_collector.small_interval
             limit_small = Config.get_kline_limit(small_interval)
             small_results = await fetch_all_kline(
@@ -333,7 +336,6 @@ class TradingSignalBot:
                     if interval == small_interval:
                         continue
                     required_len = Config.get_kline_limit(interval)
-                    # 并发执行所有币种的 update_large_interval
                     tasks = [
                         self.kline_collector.update_large_interval(
                             sym, interval, required_len, self.config.MAX_RETRIES, True
@@ -347,7 +349,6 @@ class TradingSignalBot:
                     ]
                     all_periods_data[interval] = period_data
             else:
-                # 非派生模式：所有周期都通过 fetch_all_kline 获取（支持缓存增量更新）
                 for interval in self.config.KLINE_INTERVAL_SORT:
                     if interval == small_interval:
                         continue
@@ -362,12 +363,13 @@ class TradingSignalBot:
                         endtime=self.endtime
                     )
                     all_periods_data[interval] = results
+
         if len(self.config.BACK_TESTING_SYMBOLS) >0:
             # 假设你的数据存放在变量 all_periods_data 中
             for i in self.config.KLINE_INTERVAL_SORT[::-1]:
                 # 将其他大周期close转化为15分钟倒数第二根收盘
                 all_periods_data[i][0]['data'].at[all_periods_data[i][0]['data'].index[-1],'close'] = all_periods_data[self.config.KLINE_INTERVAL_SORT[-1]][0]['data'].iloc[-2]['close']
-
+        print(all_periods_data)
         # ---------- 3. 统计流量 ----------
         total_mb = self.kline_collector.total_bytes / (1024 * 1024)
         once_mb = (self.kline_collector.total_bytes - self.kline_collector.before_bytes) / (1024 * 1024)

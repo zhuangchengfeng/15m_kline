@@ -112,7 +112,7 @@ class Config:
     BLACK_SYMBOL_LIST = []
     END_TIME = get_timestamp(2026, 4, 30, 23, 30)    #:int ms  用于回测，输入结束时间判断K线信号
     # END_TIME = None
-    BACK_TESTING_SYMBOLS = ['PENDLEUSDT']  #不回测时请清空
+    BACK_TESTING_SYMBOLS = ['CGPTUSDT']  #不回测时请清空
     #  ---------------------------------------------------------#
 
 
@@ -145,7 +145,7 @@ class Config:
         return self.KLINE_LIMIT.get(interval, default)
 
     KLINE_LIMIT_UPDATE = 6  # 增量更新最小K线  节省流量
-    USE_DERIVED_MODE = True  # True: 大周期由小周期派生（默认模式）；False: 大周期直接请求API（非默认模式）
+    USE_DERIVED_MODE = True  # True: 大周期由小周期派生（默认模式）: 大周期直接请求API（非默认模式）
 
     #  ---------------------------------------------------------#
 

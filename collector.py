@@ -295,13 +295,14 @@ class BinanceKlineCollector:
         ongoing_df = cached_df[ongoing_mask].copy()
         # 3. 检查是否需要追加新的已完成K线（新的大周期已收盘）
         if not completed_df.empty:
+            print(456)
             last_completed = completed_df.iloc[-1]
             last_completed_close = last_completed['close_time']
             if current_time_ms > last_completed_close + self.interval_to_ms(interval):
                 fetch_limit = 2
                 url = 'https://fapi.binance.com/fapi/v1/klines'
                 params = {'symbol': symbol, 'interval': interval, 'limit': fetch_limit}
-                result = await self._make_request_with_retry(url, params, max_retries, None)
+                result = await self._make_request_with_retry(url, params, max_retries)
                 if result:
                     _, data = result
                     new_hist_df = pd.DataFrame([item[:7] for item in data],
