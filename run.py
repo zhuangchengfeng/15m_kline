@@ -369,7 +369,6 @@ class TradingSignalBot:
             for i in self.config.KLINE_INTERVAL_SORT[::-1]:
                 # 将其他大周期close转化为15分钟倒数第二根收盘
                 all_periods_data[i][0]['data'].at[all_periods_data[i][0]['data'].index[-1],'close'] = all_periods_data[self.config.KLINE_INTERVAL_SORT[-1]][0]['data'].iloc[-2]['close']
-        print(all_periods_data)
         # ---------- 3. 统计流量 ----------
         total_mb = self.kline_collector.total_bytes / (1024 * 1024)
         once_mb = (self.kline_collector.total_bytes - self.kline_collector.before_bytes) / (1024 * 1024)

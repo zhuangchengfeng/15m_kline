@@ -107,20 +107,23 @@ class KlineCache:
                 first_new_time = new_data['open_time'].iloc[0]
                 if first_new_time > last_old_time:
                     combined = pd.concat([old_df, new_data])
-                    updated_df = combined.tail(max_length)
                 else:
                     combined = pd.concat([old_df, new_data]).drop_duplicates(
                         subset=['open_time'], keep='last'
                     ).sort_values('open_time')
-                    updated_df = combined.tail(max_length)
+                # 重置索引，避免重复/跳跃的索引值
+                combined.reset_index(drop=True, inplace=True)
+                updated_df = combined.tail(max_length)
             else:
                 updated_df = new_data.tail(max_length)
+                updated_df.reset_index(drop=True, inplace=True)
 
             self._memory_cache[cache_key] = updated_df
             logger.debug(f"内存缓存更新: {symbol} {interval} {len(old_df)}→{len(updated_df)}条")
             return updated_df
         else:
             result_df = new_data.tail(max_length)
+            result_df.reset_index(drop=True, inplace=True)
             self._memory_cache[cache_key] = result_df
             return result_df
 
@@ -295,7 +298,6 @@ class BinanceKlineCollector:
         ongoing_df = cached_df[ongoing_mask].copy()
         # 3. 检查是否需要追加新的已完成K线（新的大周期已收盘）
         if not completed_df.empty:
-            print(456)
             last_completed = completed_df.iloc[-1]
             last_completed_close = last_completed['close_time']
             if current_time_ms > last_completed_close + self.interval_to_ms(interval):
@@ -313,10 +315,28 @@ class BinanceKlineCollector:
                     combined = pd.concat([completed_df, new_hist_df]).drop_duplicates(subset=['open_time'],
                                                                                       keep='last').sort_values(
                         'open_time')
+                    combined.reset_index(drop=True, inplace=True)
+
                     completed_df = combined
                     logger.debug(f"{symbol} {interval} 追加新的已完成K线，总长度 {len(completed_df)}")
                     # 新周期开始，清空未完成部分（新周期未完成K线将由后续聚合生成）
                     ongoing_df = pd.DataFrame(columns=cached_df.columns)
+        # ---------- 新增修正 ----------
+        if not completed_df.empty and small_df is not None:
+            last_completed = completed_df.iloc[-1]
+            last_open_time = last_completed['open_time']
+            interval_ms = self.interval_to_ms(interval)
+            mask = (small_df['open_time'] >= last_open_time) & (small_df['open_time'] < last_open_time + interval_ms)
+            if mask.any():
+                segment = small_df[mask]
+                recomputed_close = segment.iloc[-1]['close']
+                # 更新 close
+                completed_df.iloc[-1, completed_df.columns.get_loc('close')] = recomputed_close
+                # 可选：同步更新 high/low/volume
+                completed_df.iloc[-1, completed_df.columns.get_loc('high')] = segment['high'].max()
+                completed_df.iloc[-1, completed_df.columns.get_loc('low')] = segment['low'].min()
+                completed_df.iloc[-1, completed_df.columns.get_loc('volume')] = segment['volume'].sum()
+                logger.debug(f"{symbol} {interval} 修正最近已完成K线 close -> {recomputed_close}")
 
         # 4. 更新当前未完成的大周期K线
         # 如果 ongoing_df 为空，说明刚进入新周期，需要根据小周期数据生成初始未完成K线
@@ -346,6 +366,8 @@ class BinanceKlineCollector:
         # 5. 合并已完成和未完成部分，并截断到 target_length
         final_df = pd.concat([completed_df, ongoing_df]).drop_duplicates(subset=['open_time'], keep='last').sort_values(
             'open_time')
+        final_df.reset_index(drop=True, inplace=True)
+
         final_df = final_df.tail(target_length)
 
         self.cache.save(symbol, interval, final_df)
@@ -411,6 +433,7 @@ class BinanceKlineCollector:
         df = pd.DataFrame([item[:7] for item in data],
                           columns=['open_time', 'open', 'high', 'low', 'close', 'volume', 'close_time'])
         df[['open', 'high', 'low', 'close', 'volume']] = df[['open', 'high', 'low', 'close', 'volume']].astype(float)
+        df.reset_index(drop=True, inplace=True)
         self.cache.save(symbol, interval, df)
         return df
 

@@ -106,7 +106,7 @@ def detect_signal(interval_check, result: dict, all_periods_data=None) -> list:
                         if break_15m and break_1h:
                             return [1, '做多', '_15m_2break']
 
-            if price_power(3): #23:38:13 - INFO -   API3USDT L ... [1] 1w_1h_pass_15m_2_ | PENDLEUSDT L .
+            if price_power(3): #2026-05-02 09:30:12 - INFO -   ZEREBROUSDT L ..
                 break_15m = smc.check_break_engulfing(prev, latest, engulf_prices_15m['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_15m['long'],k_form='hope_star')
                 break_1h = smc.check_break_engulfing(prev, latest, engulf_prices_1h['long']) or smc.check_break_engulfing(kline_data.iloc[-4], latest, engulf_prices_1h['long'],k_form='hope_star')
                 if break_15m and break_1h:

@@ -15,3 +15,4 @@ clean_list = [item.strip() for item in data]
 
 client = UMFutures(key=clean_list[0], secret=clean_list[1], proxies=proxies)
 
+print(client.time())

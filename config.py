@@ -110,9 +110,9 @@ class Config:
     SYMBOLS_RANGE = (1, 150)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG']
     BLACK_SYMBOL_LIST = []
-    END_TIME = get_timestamp(2026, 4, 30, 23, 30)    #:int ms  用于回测，输入结束时间判断K线信号
-    # END_TIME = None
-    BACK_TESTING_SYMBOLS = ['CGPTUSDT']  #不回测时请清空
+    # END_TIME = get_timestamp(2026, 5, 1, 18, 15)    #:int ms  用于回测，输入结束时间判断K线信号
+    END_TIME = None
+    BACK_TESTING_SYMBOLS = []  #不回测时请清空
     #  ---------------------------------------------------------#
 
 
