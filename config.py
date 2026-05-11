@@ -92,8 +92,8 @@ class Config:
     P5 = True
     if P5:
         CLICK_COORDINATES_BINANCE = {
-            'first_double_click': (165, 508),  # 币安电脑端自定义布局 查询品种坐标
-            'second_click': (165, 620), }  # 下移单位
+            'first_double_click': (159, 138),  # 币安电脑端自定义布局 查询品种坐标
+            'second_click': (188, 270), }  # 下移单位
     else:
         CLICK_COORDINATES_BINANCE = {
             'first_double_click': (165, 175),  # 币安电脑端 查询品种坐标
@@ -105,14 +105,14 @@ class Config:
 
     #  ---------------------------------------------------------#
     SCAN_INTERVALS_DEBUG = False  # 调试模式
-    KLINE_INTERVAL = ['15m','1w','1h']   #修改detect时一定要注意  保证这里出现的周期和detect出现的一致
+    KLINE_INTERVAL = ['15m','1w','1h','4h']   #修改detect时一定要注意  保证这里出现的周期和detect出现的一致
     MIN_VOLUME = 10000000  # 仅选择最小成交量需要大于MIN_VOLUME的品种
     SYMBOLS_RANGE = (1, 150)  # 取涨幅榜前1到品种
     POSITION_SIDE = ['LONG']
     BLACK_SYMBOL_LIST = []
-    # END_TIME = get_timestamp(2026, 5, 1, 18, 15)    #:int ms  用于回测，输入结束时间判断K线信号
-    END_TIME = None
-    BACK_TESTING_SYMBOLS = []  #不回测时请清空
+    END_TIME = get_timestamp(2026, 5, 11, 20, 0)    #:int ms  用于回测，输入结束时间判断K线信号
+    # END_TIME = None
+    BACK_TESTING_SYMBOLS = ['TRUTHUSDT']  #不回测时请清空
     #  ---------------------------------------------------------#
 
 
@@ -135,7 +135,8 @@ class Config:
         '1m':385,
         '15m': 385,  # 15分钟周期保留385根（约4天）
         '1h':385,
-        '1w': 1,  # 周线保留6根（约6周）
+        '4h':385,
+        '1w': 6,  # 周线保留6根（约6周）
         # 其他周期可以添加默认值 # [1,100) 1 ,[100, 500) 2 ,[500, 1000] 5 ,> 1000 10
     }
 

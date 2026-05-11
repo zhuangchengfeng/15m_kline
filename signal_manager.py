@@ -58,7 +58,6 @@ class SignalManager:
 
 
     def update_signals(self, symbols: List, signal_d: Dict, signal_txt_marker):
-        data = pd.read_csv('price.csv')
 
         # 加载当天的JSON文件统计信号次数
         today_str = datetime.now().strftime("%Y-%m-%d")
@@ -108,25 +107,6 @@ class SignalManager:
                         get_symbol = symbols[idx].get('symbol')
                         get_position_side = symbols[idx].get('position_side')
                         format_name = get_symbol.replace("USDT", "").lower()
-                        pvalues = data[data['symbols'] == format_name]['price'].values
-                        mode = data[data['symbols'] == format_name]['mode'].values
-
-                        if len(pvalues) > 0:
-                            key_price = float(pvalues[0])
-                            if get_position_side == 'L' and mode == 'l':
-                                c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
-                                percent = (c_price - key_price) / key_price * 100
-                                color = GREEN if percent > 0 else RED
-                                colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
-                            elif get_position_side == 'S' and mode == 's':
-                                c_price = signal_d.get(get_symbol)[1].get('data').iloc[-1]['close']
-                                percent = (key_price - c_price) / key_price * 100
-                                color = GREEN if percent < 0 else RED
-                                colored_percent_txt = f"{color}{percent:+.2f}%{RESET}"
-                            else:
-                                colored_percent_txt = "..."
-                        else:
-                            colored_percent_txt = "..."
 
                         # 获取信号次数（从预计算的字典中）
                         counts = signal_counts.get(get_symbol, {'L': 0, 'S': 0})
@@ -136,7 +116,7 @@ class SignalManager:
                             count = counts['S']
                         txt = signal_txt_marker[get_symbol]
                         # 构建显示项，添加信号次数
-                        item = f"{get_symbol} {get_position_side} {colored_percent_txt} [{count}] {txt}"
+                        item = f"{get_symbol} {get_position_side} [{count}] {txt}"
 
                         # 对齐显示
                         padded_item = item.ljust(col_widths[col])

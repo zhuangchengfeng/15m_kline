@@ -132,10 +132,9 @@ class AsyncReporter:
 
     async def analyze_json_file_async(self, json_file_path):
         """异步分析JSON文件 - 优化版本，使用gather并发请求"""
-        current_file = os.path.join('signal_data', json_file_path)
-
+        current_file = json_file_path
         try:
-            with open(current_file, 'r', encoding='utf-8') as f:
+            with open(json_file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
             print(f"\n{'=' * 60}")
@@ -400,7 +399,7 @@ class AsyncReporter:
         # 打印L信号（做多）
         if sorted_l:
             print("\n【LONG 信号 - 按上涨%从高到低】")
-            for sig in sorted_l[:30]:  # 只显示前20个
+            for sig in sorted_l:  # 只显示前20个
                 print("{:<12} {:<8} {:<20} {:<12.6f} {:<12.6f} {:<12.6f} {:<10} {:<10}".format(
                     sig["symbol"],
                     "LONG",
@@ -411,13 +410,11 @@ class AsyncReporter:
                     sig["up_rate"],
                     sig["down_rate"]
                 ))
-            if len(sorted_l) > 30:
-                print(f"... 还有 {len(sorted_l) - 30} 个LONG信号未显示")
 
         # 打印S信号（做空）
         if sorted_s:
             print("\n【SHORT 信号 - 按下跌%从低到高（跌幅最大优先）】")
-            for sig in sorted_s[:30]:  # 只显示前20个
+            for sig in sorted_s:  # 只显示前20个
                 print("{:<12} {:<8} {:<20} {:<12.6f} {:<12.6f} {:<12.6f} {:<10} {:<10}".format(
                     sig["symbol"],
                     "SHORT",
@@ -428,8 +425,6 @@ class AsyncReporter:
                     sig["up_rate"],
                     sig["down_rate"]
                 ))
-            if len(sorted_s) > 30:
-                print(f"... 还有 {len(sorted_s) - 30} 个SHORT信号未显示")
 
         # 打印统计信息
         print(f"\n📊 统计信息")
@@ -462,7 +457,7 @@ class AsyncReporter:
             return False
 
 
-def main(json_file_name):
+def main(json_file_name,history=False):
     """同步主函数"""
     # 设置Windows事件循环策略
     if sys.platform == 'win32':
@@ -480,7 +475,14 @@ def main(json_file_name):
         loop.run_until_complete(reporter.test_proxy_connection())
 
         # 执行分析
-        json_file = json_file_name
+        if not history:
+            with open("signal_data/" + json_file_name, 'r', encoding='utf-8') as f:
+                json_file = "signal_data/" + json_file_name
+
+        else:
+            with open("signal_data/history/" + json_file_name, 'r', encoding='utf-8') as f:
+                json_file = "signal_data/history/" + json_file_name
+
         loop.run_until_complete(reporter.analyze_json_file_async(json_file))
 
     except KeyboardInterrupt:
@@ -518,12 +520,119 @@ def main(json_file_name):
 
         print("👋 程序退出")
 
+import json
 
+def parse_percent(pct_str):
+    """将百分比字符串（如 '+8.84%'）转换为浮点数"""
+    return float(pct_str.rstrip('%'))
+
+def system_out(file,history=False):
+    # 读取JSON文件
+    if not history:
+        with open("signal_data/" + file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        with open("signal_data/history/" + file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    # 定义列宽
+    widths = [20, 20, 18, 18, 12]
+    headers = ['交易对', 'open_time', 'rate_of_up_change', 'rate_of_down_change', 'position_side']
+
+    # 打印表头
+    header_line = ''.join(f"{h:<{w}}" for h, w in zip(headers, widths))
+    print(header_line)
+    print("-" * sum(widths))
+
+    # ANSI颜色码
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    RESET = '\033[0m'
+
+    def parse_percent(pct_str):
+        """将百分比字符串转换为浮点数"""
+        try:
+            return float(pct_str.rstrip('%'))
+        except (ValueError, AttributeError):
+            return None
+
+    # 按交易对逐个处理
+    for symbol, info in data.items():
+        signals = info.get('signals', [])
+        if not signals:
+            continue
+
+        # 收集有效信号（必须有 rate_of_up_change 且能解析）
+        valid_signals = []
+        for sig in signals:
+            up_str = sig.get('rate_of_up_change', '')
+            up_val = parse_percent(up_str)
+            if up_val is not None:
+                valid_signals.append((up_val, sig))
+            else:
+                # 无效信号也输出？按照原逻辑，无效可能不打印，这里忽略
+                pass
+
+        if not valid_signals:
+            continue
+
+        # 排序：按上涨率数值升序
+        valid_signals.sort(key=lambda x: x[0])  # 按 up_val 排序
+
+        # 选择需要输出的信号：最小（第一个）和最大（最后一个）
+        to_output = []
+        if len(valid_signals) == 1:
+            to_output.append(valid_signals[0][1])
+        else:
+            # 去重：如果最小和最大是同一个（所有值相同），只输出一个
+            min_sig = valid_signals[0][1]
+            max_sig = valid_signals[-1][1]
+            if min_sig is max_sig:
+                to_output.append(min_sig)
+            else:
+                to_output.append(min_sig)
+                to_output.append(max_sig)
+
+        # 输出每个选中的信号
+        for sig in to_output:
+            open_time = sig.get('open_time', '')
+            up_str = sig.get('rate_of_up_change', '')
+            down_str = sig.get('rate_of_down_change', '')
+            side = sig.get('position_side', '')
+
+            # 构造无颜色的行内容
+            cols = [symbol, open_time, up_str, down_str, side]
+            line = ''.join(f"{col:<{w}}" for col, w in zip(cols, widths))
+
+            # 着色逻辑
+            if side in ('L', 'S'):
+                up_val = parse_percent(up_str)
+                down_val = parse_percent(down_str)
+                if up_val is not None and down_val is not None:
+                    if side == 'L':
+                        condition = up_val > abs(down_val)
+                    else:  # side == 'S'
+                        condition = up_val < down_val
+                else:
+                    condition = False
+                color = GREEN if condition else RED
+                print(f"{color}{line}{RESET}")
+            else:
+                print(line)
+# 使用示例
+# system_out("2026-05-02.json")
 if __name__ == '__main__':
     from datetime import datetime
 
     # 获取当前日期，格式：2026-04-07
-    # file = f"{datetime.now().strftime('%Y-%m-%d')}.json"
-    file = f"2026-05-01.json"
-    print(file)
-    main(file)
+    history = 0
+
+    if history:
+        file = f"2026-05-09.json"
+    else:
+        file = f"{datetime.now().strftime('%Y-%m-%d')}.json"
+
+    main(file,history)
+
+    system_out(file,history)
+
+
